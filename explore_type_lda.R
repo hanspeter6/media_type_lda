@@ -215,7 +215,7 @@ set14$race <- factor(set14$race,labels = c("black", "coloured", "indian", "white
 set14$edu <- factor(set14$edu, labels = c("<matric", "matric",">matric" ))
 set14$lsm <- factor(set14$lsm, labels = c("LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10"))
 set14$sex <- factor(set14$sex, labels = c("male", "female"))
-set14$hh_inc <- factor(set14$hh_inc, labels = c("<R2500","R2500-R6999","R7000-R11999",">=R14000"))
+set14$hh_inc <- factor(set14$hh_inc, labels = c("<R2500","R2500-R6999","R7000-R11999",">=R12000"))
 
 sex_14 <- set14 %>%
         group_by(category = sex) %>%
@@ -273,10 +273,99 @@ frame_14 <- rbind.data.frame(sex_14,
                              lsm_14) %>%
         mutate(year = 2014) %>%
         select(category, year, everything())
+
+
+# putting it together
 type_frame <- rbind.data.frame(frame_02,
                                frame_10,
                                frame_12,
                                frame_14)
 
+
 type_frame <- pdata.frame(type_frame)#, index = c("country", "year"), drop.index = FALSE)
 
+# basic nlme
+
+# per grouping
+
+type_frame_age <- type_frame %>%
+        filter(category %in% c("15-24","25-44", "45-54","55+" ))
+
+type_frame_race <- type_frame %>%
+        filter(category %in% c("black", "coloured", "indian", "white"))
+
+type_frame_inc <- type_frame %>%
+        filter(category %in% c("<R2500","R2500-R6999","R7000-R11999",">=R12000"))
+
+type_frame_sex <- type_frame %>%
+        filter(category %in% c("male", "female"))
+
+type_frame_edu <- type_frame %>%
+        filter(category %in% c("<matric", "matric",">matric"))
+
+type_frame_lsm <- type_frame %>%
+        filter(category %in% c("LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10"))
+
+# newspapers
+newsp_age <- groupedData(newspapers ~ as.numeric(as.character(year))| category, data = type_frame_age)
+newsp_race <- groupedData(newspapers ~ as.numeric(as.character(year))| category, data = type_frame_race)
+newsp_inc <- groupedData(newspapers ~ as.numeric(as.character(year))| category, data = type_frame_inc)
+newsp_sex <- groupedData(newspapers ~ as.numeric(as.character(year))| category, data = type_frame_sex)
+newsp_edu <- groupedData(newspapers ~ as.numeric(as.character(year))| category, data = type_frame_edu)
+newsp_lsm <- groupedData(newspapers ~ as.numeric(as.character(year))| category, data = type_frame_lsm)
+
+jpeg("lds_newsp_age.jpeg")
+plot(newsp_age, aspect = 2, xlab = "year", main = "Newspapers and Age")
+dev.off()
+
+jpeg("lds_newsp_race.jpeg")
+plot(newsp_race, aspect = 2, xlab = "year", main = "Newspapers and Race")
+dev.off()
+
+jpeg("lds_newsp_inc.jpeg")
+plot(newsp_inc, aspect = 2, xlab = "year", main = "Newspapers and Household Income")
+dev.off()
+
+jpeg("lds_newsp_sex.jpeg")
+plot(newsp_sex, aspect = 2, xlab = "year", main = "Newspapers and Gender")
+dev.off()
+
+jpeg("lds_newsp_edu.jpeg")
+plot(newsp_edu, aspect = 2, xlab = "year", main = "Newspapers and Education")
+dev.off()
+
+jpeg("lds_newsp_lsm.jpeg")
+plot(newsp_lsm, aspect = 2, xlab = "year", main = "Newspapers and LSM")
+dev.off()
+
+# internet
+int_age <- groupedData( internet ~ as.numeric(as.character(year))| category, data = type_frame_age)
+int_race <- groupedData(internet ~ as.numeric(as.character(year))| category, data = type_frame_race)
+int_inc <- groupedData(internet ~ as.numeric(as.character(year))| category, data = type_frame_inc)
+int_sex <- groupedData(internet ~ as.numeric(as.character(year))| category, data = type_frame_sex)
+int_edu <- groupedData(internet ~ as.numeric(as.character(year))| category, data = type_frame_edu)
+int_lsm <- groupedData(internet ~ as.numeric(as.character(year))| category, data = type_frame_lsm)
+
+jpeg("lds_int_age.jpeg")
+plot(int_age, aspect = 2, xlab = "year", main = "Internet and Age")
+dev.off()
+
+jpeg("lds_int_race.jpeg")
+plot(int_race, aspect = 2, xlab = "year", main = "Internet and Race")
+dev.off()
+
+jpeg("lds_int_inc.jpeg")
+plot(int_inc, aspect = 2, xlab = "year", main = "Internet and Household Income")
+dev.off()
+
+jpeg("lds_int_sex.jpeg")
+plot(int_sex, aspect = 2, xlab = "year", main = "Internet and Gender")
+dev.off()
+
+jpeg("lds_int_edu.jpeg")
+plot(int_edu, aspect = 2, xlab = "year", main = "Internet and Education")
+dev.off()
+
+jpeg("lds_int_lsm.jpeg")
+plot(int_lsm, aspect = 2, xlab = "year", main = "Internet and LSM")
+dev.off()
