@@ -4,6 +4,7 @@ library(tidyr)
 library(dplyr)
 # reading in the different datasets:
 set02 <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2002/set02.rds")
+set05 <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2005/set05.rds")
 set10 <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2010/set10.rds")
 set12 <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2012/set12.rds")
 set14 <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2014/set14.rds")
@@ -77,6 +78,72 @@ frame_02 <- rbind.data.frame(sex_02,
                              lsm_02) %>%
         mutate(year = 2002) %>%
         select(category, year, everything())
+
+# for 2005 
+set05$age <- factor(set05$age, labels = c("15-24","25-44", "45-54","55+"))
+set05$race <- factor(set05$race,labels = c("black", "coloured", "indian", "white"))
+set05$edu <- factor(set05$edu, labels = c("<matric", "matric",">matric" ))
+set05$lsm <- factor(set05$lsm, labels = c("LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10"))
+set05$sex <- factor(set05$sex, labels = c("male", "female"))
+set05$hh_inc <- factor(set05$hh_inc, labels = c("<R2500","R2500-R6999","R7000-R11999",">=R12000")) # NB 2012 levels
+
+sex_05 <- set05 %>%
+        group_by(category = sex) %>%
+        summarise(newspapers = mean(newspapers),
+                  magazines = mean(magazines),
+                  tv = mean(tv),
+                  radio = mean(radio),
+                  internet = mean(internet))
+
+age_05 <- set05 %>%
+        group_by(category = age) %>%
+        summarise(newspapers = mean(newspapers),
+                  magazines = mean(magazines),
+                  tv = mean(tv),
+                  radio = mean(radio),
+                  internet = mean(internet))
+
+edu_05 <- set05 %>%
+        group_by(category = edu) %>%
+        summarise(newspapers = mean(newspapers),
+                  magazines = mean(magazines),
+                  tv = mean(tv),
+                  radio = mean(radio),
+                  internet = mean(internet))
+
+race_05 <- set05 %>%
+        group_by(category = race) %>%
+        summarise(newspapers = mean(newspapers),
+                  magazines = mean(magazines),
+                  tv = mean(tv),
+                  radio = mean(radio),
+                  internet = mean(internet))
+
+hh_inc_05 <- set05 %>%
+        group_by(category = hh_inc) %>%
+        summarise(newspapers = mean(newspapers),
+                  magazines = mean(magazines),
+                  tv = mean(tv),
+                  radio = mean(radio),
+                  internet = mean(internet))
+
+lsm_05 <- set05 %>%
+        group_by(category = lsm) %>%
+        summarise(newspapers = mean(newspapers),
+                  magazines = mean(magazines),
+                  tv = mean(tv),
+                  radio = mean(radio),
+                  internet = mean(internet))
+
+frame_05 <- rbind.data.frame(sex_05,
+                             age_05,
+                             edu_05,
+                             race_05,
+                             hh_inc_05,
+                             lsm_05) %>%
+        mutate(year = 2005) %>%
+        select(category, year, everything())
+
 
 # for 2010 
 set10$age <- factor(set10$age, labels = c("15-24","25-44", "45-54","55+"))
@@ -277,6 +344,7 @@ frame_14 <- rbind.data.frame(sex_14,
 
 # putting it together
 type_frame <- rbind.data.frame(frame_02,
+                               frame_05,
                                frame_10,
                                frame_12,
                                frame_14)
