@@ -2,6 +2,8 @@ library(plm)
 library(nlme)
 library(tidyr)
 library(dplyr)
+library(ggplot2)
+
 # reading in the different datasets:
 set02 <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2002/set02.rds")
 set05 <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2005/set05.rds")
@@ -9,66 +11,153 @@ set10 <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps
 set12 <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2012/set12.rds")
 set14 <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2014/set14.rds")
 
-# 
-# # Gasoline contains two variables which are individual and time indexes
-# data("Gasoline", package = "plm")
-# Gas <- pdata.frame(Gasoline, index = c("country", "year"), drop.index = FALSE)
+
+set02$typePC <- as.vector(set02$typePC)
+set05$typePC <- as.vector(set05$typePC)
+set10$typePC <- as.vector(set10$typePC)
+set12$typePC <- as.vector(set12$typePC)
+set14$typePC <- as.vector(set14$typePC)
 
 # for 2002 
-set02$age <- factor(set02$age, labels = c("15-24","25-44", "45-54","55+"))
-set02$race <- factor(set02$race,labels = c("black", "coloured", "indian", "white"))
-set02$edu <- factor(set02$edu, labels = c("<matric", "matric",">matric" ))
-set02$lsm <- factor(set02$lsm, labels = c("LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10"))
-set02$sex <- factor(set02$sex, labels = c("male", "female"))
-set02$hh_inc <- factor(set02$hh_inc, labels = c("<R2500","R2500-R6999","R7000-R11999",">=R12000")) # NB 2012 levels
+set02$age <- factor(set02$age, labels = c("15-24","25-44", "45-54","55+"), ordered = TRUE)
+set02$race <- factor(set02$race,labels = c("black", "coloured", "indian", "white"), ordered = TRUE)
+set02$edu <- factor(set02$edu, labels = c("<matric", "matric",">matric" ) ,ordered = TRUE)
+set02$lsm <- factor(set02$lsm, labels = c("LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10"), ordered = TRUE)
+set02$sex <- factor(set02$sex, labels = c("male", "female"), ordered = TRUE)
+set02$hh_inc <- factor(set02$hh_inc, labels = c("<R2500","R2500-R6999","R7000-R11999",">=R12000"), ordered = TRUE) # NB 2012 levels
 
 sex_02 <- set02 %>%
         group_by(category = sex) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+                  )
 
 age_02 <- set02 %>%
         group_by(category = age) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
+
 
 edu_02 <- set02 %>%
         group_by(category = edu) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 race_02 <- set02 %>%
         group_by(category = race) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 hh_inc_02 <- set02 %>%
         group_by(category = hh_inc) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 lsm_02 <- set02 %>%
         group_by(category = lsm) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 frame_02 <- rbind.data.frame(sex_02,
                              age_02,
@@ -80,60 +169,146 @@ frame_02 <- rbind.data.frame(sex_02,
         select(category, year, everything())
 
 # for 2005 
-set05$age <- factor(set05$age, labels = c("15-24","25-44", "45-54","55+"))
-set05$race <- factor(set05$race,labels = c("black", "coloured", "indian", "white"))
-set05$edu <- factor(set05$edu, labels = c("<matric", "matric",">matric" ))
-set05$lsm <- factor(set05$lsm, labels = c("LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10"))
-set05$sex <- factor(set05$sex, labels = c("male", "female"))
-set05$hh_inc <- factor(set05$hh_inc, labels = c("<R2500","R2500-R6999","R7000-R11999",">=R12000")) # NB 2012 levels
+set05$age <- factor(set05$age, labels = c("15-24","25-44", "45-54","55+"), ordered = TRUE)
+set05$race <- factor(set05$race,labels = c("black", "coloured", "indian", "white"), ordered = TRUE)
+set05$edu <- factor(set05$edu, labels = c("<matric", "matric",">matric" ),ordered = TRUE)
+set05$lsm <- factor(set05$lsm, labels = c("LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10"), ordered = TRUE)
+set05$sex <- factor(set05$sex, labels = c("male", "female"), ordered = TRUE)
+set05$hh_inc <- factor(set05$hh_inc, labels = c("<R2500","R2500-R6999","R7000-R11999",">=R12000"), ordered = TRUE) # NB 2012 levels
+
 
 sex_05 <- set05 %>%
         group_by(category = sex) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 age_05 <- set05 %>%
         group_by(category = age) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
+
 
 edu_05 <- set05 %>%
         group_by(category = edu) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 race_05 <- set05 %>%
         group_by(category = race) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 hh_inc_05 <- set05 %>%
         group_by(category = hh_inc) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 lsm_05 <- set05 %>%
         group_by(category = lsm) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 frame_05 <- rbind.data.frame(sex_05,
                              age_05,
@@ -146,60 +321,146 @@ frame_05 <- rbind.data.frame(sex_05,
 
 
 # for 2010 
-set10$age <- factor(set10$age, labels = c("15-24","25-44", "45-54","55+"))
-set10$race <- factor(set10$race,labels = c("black", "coloured", "indian", "white"))
-set10$edu <- factor(set10$edu, labels = c("<matric", "matric",">matric" ))
-set10$lsm <- factor(set10$lsm, labels = c("LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10"))
-set10$sex <- factor(set10$sex, labels = c("male", "female"))
-set10$hh_inc <- factor(set10$hh_inc, labels = c("<R2500","R2500-R6999","R7000-R11999",">=R12000")) # NB 2012 levels
+set10$age <- factor(set10$age, labels = c("15-24","25-44", "45-54","55+"), ordered = TRUE)
+set10$race <- factor(set10$race,labels = c("black", "coloured", "indian", "white"), ordered = TRUE)
+set10$edu <- factor(set10$edu, labels = c("<matric", "matric",">matric" ), ordered = TRUE)
+set10$lsm <- factor(set10$lsm, labels = c("LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10"), ordered = TRUE)
+set10$sex <- factor(set10$sex, labels = c("male", "female"), ordered = TRUE)
+set10$hh_inc <- factor(set10$hh_inc, labels = c("<R2500","R2500-R6999","R7000-R11999",">=R12000"), ordered = TRUE) # NB 2012 levels
+
 
 sex_10 <- set10 %>%
         group_by(category = sex) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 age_10 <- set10 %>%
         group_by(category = age) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
+
 
 edu_10 <- set10 %>%
         group_by(category = edu) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 race_10 <- set10 %>%
         group_by(category = race) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 hh_inc_10 <- set10 %>%
         group_by(category = hh_inc) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 lsm_10 <- set10 %>%
         group_by(category = lsm) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 frame_10 <- rbind.data.frame(sex_10,
                              age_10,
@@ -211,60 +472,145 @@ frame_10 <- rbind.data.frame(sex_10,
         select(category, year, everything())
 
 # for 2012 
-set12$age <- factor(set12$age, labels = c("15-24","25-44", "45-54","55+"))
-set12$race <- factor(set12$race,labels = c("black", "coloured", "indian", "white"))
-set12$edu <- factor(set12$edu, labels = c("<matric", "matric",">matric" ))
-set12$lsm <- factor(set12$lsm, labels = c("LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10"))
-set12$sex <- factor(set12$sex, labels = c("male", "female"))
-set12$hh_inc <- factor(set12$hh_inc, labels = c("<R2500","R2500-R6999","R7000-R11999",">=R12000"))
+set12$age <- factor(set12$age, labels = c("15-24","25-44", "45-54","55+"), ordered = TRUE)
+set12$race <- factor(set12$race,labels = c("black", "coloured", "indian", "white"), ordered = TRUE)
+set12$edu <- factor(set12$edu, labels = c("<matric", "matric",">matric" ), ordered = TRUE)
+set12$lsm <- factor(set12$lsm, labels = c("LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10"), ordered = TRUE)
+set12$sex <- factor(set12$sex, labels = c("male", "female"), ordered = TRUE)
+set12$hh_inc <- factor(set12$hh_inc, labels = c("<R2500","R2500-R6999","R7000-R11999",">=R12000"), ordered = TRUE) # NB 2012 levels
 
 sex_12 <- set12 %>%
         group_by(category = sex) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 age_12 <- set12 %>%
         group_by(category = age) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
+
 
 edu_12 <- set12 %>%
         group_by(category = edu) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 race_12 <- set12 %>%
         group_by(category = race) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 hh_inc_12 <- set12 %>%
         group_by(category = hh_inc) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 lsm_12 <- set12 %>%
         group_by(category = lsm) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 frame_12 <- rbind.data.frame(sex_12,
                          age_12,
@@ -277,60 +623,145 @@ frame_12 <- rbind.data.frame(sex_12,
 
 
 # for 2014 
-set14$age <- factor(set14$age, labels = c("15-24","25-44", "45-54","55+"))
-set14$race <- factor(set14$race,labels = c("black", "coloured", "indian", "white"))
-set14$edu <- factor(set14$edu, labels = c("<matric", "matric",">matric" ))
-set14$lsm <- factor(set14$lsm, labels = c("LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10"))
-set14$sex <- factor(set14$sex, labels = c("male", "female"))
-set14$hh_inc <- factor(set14$hh_inc, labels = c("<R2500","R2500-R6999","R7000-R11999",">=R12000"))
+set14$age <- factor(set14$age, labels = c("15-24","25-44", "45-54","55+"), ordered = TRUE)
+set14$race <- factor(set14$race,labels = c("black", "coloured", "indian", "white"), ordered = TRUE)
+set14$edu <- factor(set14$edu, labels = c("<matric", "matric",">matric" ), ordered = TRUE)
+set14$lsm <- factor(set14$lsm, labels = c("LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10"), ordered = TRUE)
+set14$sex <- factor(set14$sex, labels = c("male", "female"), ordered = TRUE)
+set14$hh_inc <- factor(set14$hh_inc, labels = c("<R2500","R2500-R6999","R7000-R11999",">=R12000"), ordered = TRUE) # NB 2012 levels
 
 sex_14 <- set14 %>%
         group_by(category = sex) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 age_14 <- set14 %>%
         group_by(category = age) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
+
 
 edu_14 <- set14 %>%
         group_by(category = edu) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 race_14 <- set14 %>%
         group_by(category = race) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 hh_inc_14 <- set14 %>%
         group_by(category = hh_inc) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 lsm_14 <- set14 %>%
         group_by(category = lsm) %>%
-        summarise(newspapers = mean(newspapers),
-                  magazines = mean(magazines),
-                  tv = mean(tv),
-                  radio = mean(radio),
-                  internet = mean(internet))
+        summarise(news = mean(newspapers),
+                  mags = mean(magazines),
+                  tvs = mean(tv),
+                  radios = mean(radio),
+                  internets = mean(internet),
+                  pcs = mean(typePC),
+                  up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
+                  low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                  up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
+                  up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
+                  low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
+                  up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
+                  low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
+                  up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
+                  low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
+                  up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
+                  low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
+        )
 
 frame_14 <- rbind.data.frame(sex_14,
                              age_14,
@@ -375,65 +806,273 @@ type_frame_lsm <- type_frame %>%
         filter(category %in% c("LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10"))
 
 # newspapers
-newsp_age <- groupedData(newspapers ~ as.numeric(as.character(year))| category, data = type_frame_age)
-newsp_race <- groupedData(newspapers ~ as.numeric(as.character(year))| category, data = type_frame_race)
-newsp_inc <- groupedData(newspapers ~ as.numeric(as.character(year))| category, data = type_frame_inc)
-newsp_sex <- groupedData(newspapers ~ as.numeric(as.character(year))| category, data = type_frame_sex)
-newsp_edu <- groupedData(newspapers ~ as.numeric(as.character(year))| category, data = type_frame_edu)
-newsp_lsm <- groupedData(newspapers ~ as.numeric(as.character(year))| category, data = type_frame_lsm)
+newsp_age <- groupedData(news ~ as.numeric(as.character(year))| category, data = type_frame_age)
+newsp_race <- groupedData(news ~ as.numeric(as.character(year))| category, data = type_frame_race)
+newsp_inc <- groupedData(news ~ as.numeric(as.character(year))| category, data = type_frame_inc)
+newsp_sex <- groupedData(news ~ as.numeric(as.character(year))| category, data = type_frame_sex)
+newsp_edu <- groupedData(news ~ as.numeric(as.character(year))| category, data = type_frame_edu)
+newsp_lsm <- groupedData(news ~ as.numeric(as.character(year))| category, data = type_frame_lsm)
 
 jpeg("lds_newsp_age.jpeg")
-plot(newsp_age, aspect = 2, xlab = "year", main = "Newspapers and Age")
+g <- ggplot(data = newsp_age, aes(year, news, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = newsp_age$up_newspapers, ymin = newsp_age$low_newspapers, alpha = 0.5)
+g <- g + labs(y = "newspapers", title = "Newspapers and Age")
+g
 dev.off()
 
 jpeg("lds_newsp_race.jpeg")
-plot(newsp_race, aspect = 2, xlab = "year", main = "Newspapers and Race")
+g <- ggplot(data = newsp_race, aes(year, news, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = newsp_race$up_newspapers, ymin = newsp_race$low_newspapers, alpha = 0.5)
+g <- g + labs(y = "newspapers", title = "Newspapers and Race")
+g
 dev.off()
 
 jpeg("lds_newsp_inc.jpeg")
-plot(newsp_inc, aspect = 2, xlab = "year", main = "Newspapers and Household Income")
+g <- ggplot(data = newsp_inc, aes(year, news, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = newsp_inc$up_newspapers, ymin = newsp_inc$low_newspapers, alpha = 0.5)
+g <- g + labs(y = "newspapers", title = "Newspapers and Household Income")
+g
 dev.off()
 
 jpeg("lds_newsp_sex.jpeg")
-plot(newsp_sex, aspect = 2, xlab = "year", main = "Newspapers and Gender")
+g <- ggplot(data = newsp_sex, aes(year, news, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = newsp_sex$up_newspapers, ymin = newsp_sex$low_newspapers, alpha = 0.5)
+g <- g + labs(y = "newspapers", title = "Newspapers and Gender")
+g
 dev.off()
 
 jpeg("lds_newsp_edu.jpeg")
-plot(newsp_edu, aspect = 2, xlab = "year", main = "Newspapers and Education")
+g <- ggplot(data = newsp_edu, aes(year, news, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = newsp_edu$up_newspapers, ymin = newsp_edu$low_newspapers, alpha = 0.5)
+g <- g + labs(y = "newspapers", title = "Newspapers and Education")
+g
 dev.off()
 
 jpeg("lds_newsp_lsm.jpeg")
-plot(newsp_lsm, aspect = 2, xlab = "year", main = "Newspapers and LSM")
+g <- ggplot(data = newsp_lsm, aes(year, news, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = newsp_lsm$up_newspapers, ymin = newsp_lsm$low_newspapers, alpha = 0.5)
+g <- g + labs(y = "newspapers", title = "Newspapers and LSM")
+g
+dev.off()
+
+# tvs
+tv_age <- groupedData(tvs ~ as.numeric(as.character(year))| category, data = type_frame_age)
+tv_race <- groupedData(tvs ~ as.numeric(as.character(year))| category, data = type_frame_race)
+tv_inc <- groupedData(tvs ~ as.numeric(as.character(year))| category, data = type_frame_inc)
+tv_sex <- groupedData(tvs ~ as.numeric(as.character(year))| category, data = type_frame_sex)
+tv_edu <- groupedData(tvs ~ as.numeric(as.character(year))| category, data = type_frame_edu)
+tv_lsm <- groupedData(tvs ~ as.numeric(as.character(year))| category, data = type_frame_lsm)
+
+jpeg("lds_tv_age.jpeg")
+g <- ggplot(data = tv_age, aes(year, tvs, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = tv_age$up_tv, ymin = tv_age$low_tv, alpha = 0.5)
+g <- g + labs(y = "tv", title = "tv and Age")
+g
+dev.off()
+
+jpeg("lds_tv_race.jpeg")
+g <- ggplot(data = tv_race, aes(year, tvs, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = tv_race$up_tv, ymin = tv_race$low_tv, alpha = 0.5)
+g <- g + labs(y = "tv", title = "tv and Race")
+g
+dev.off()
+
+jpeg("lds_tv_inc.jpeg")
+g <- ggplot(data = tv_inc, aes(year, tvs, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = tv_inc$up_tv, ymin = tv_inc$low_tv, alpha = 0.5)
+g <- g + labs(y = "tv", title = "tv and Household Income")
+g
+dev.off()
+
+jpeg("lds_tv_sex.jpeg")
+g <- ggplot(data = tv_sex, aes(year, tvs, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = tv_sex$up_tv, ymin = tv_sex$low_tv, alpha = 0.5)
+g <- g + labs(y = "tv", title = "tv and Gender")
+g
+dev.off()
+
+jpeg("lds_tv_edu.jpeg")
+g <- ggplot(data = tv_edu, aes(year, tvs, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = tv_edu$up_tv, ymin = tv_edu$low_tv, alpha = 0.5)
+g <- g + labs(y = "tv", title = "tv and Education")
+g
+dev.off()
+
+jpeg("lds_tv_lsm.jpeg")
+g <- ggplot(data = tv_lsm, aes(year, tvs, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = tv_lsm$up_tv, ymin = tv_lsm$low_tv, alpha = 0.5)
+g <- g + labs(y = "tv", title = "tv and LSM")
+g
 dev.off()
 
 # internet
-int_age <- groupedData( internet ~ as.numeric(as.character(year))| category, data = type_frame_age)
-int_race <- groupedData(internet ~ as.numeric(as.character(year))| category, data = type_frame_race)
-int_inc <- groupedData(internet ~ as.numeric(as.character(year))| category, data = type_frame_inc)
-int_sex <- groupedData(internet ~ as.numeric(as.character(year))| category, data = type_frame_sex)
-int_edu <- groupedData(internet ~ as.numeric(as.character(year))| category, data = type_frame_edu)
-int_lsm <- groupedData(internet ~ as.numeric(as.character(year))| category, data = type_frame_lsm)
+int_age <- groupedData( internets ~ as.numeric(as.character(year))| category, data = type_frame_age)
+int_race <- groupedData(internets ~ as.numeric(as.character(year))| category, data = type_frame_race)
+int_inc <- groupedData(internets ~ as.numeric(as.character(year))| category, data = type_frame_inc)
+int_sex <- groupedData(internets ~ as.numeric(as.character(year))| category, data = type_frame_sex)
+int_edu <- groupedData(internets ~ as.numeric(as.character(year))| category, data = type_frame_edu)
+int_lsm <- groupedData(internets ~ as.numeric(as.character(year))| category, data = type_frame_lsm)
 
 jpeg("lds_int_age.jpeg")
-plot(int_age, aspect = 2, xlab = "year", main = "Internet and Age")
+g <- ggplot(data = int_age, aes(year, internets, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = int_age$up_internet, ymin = int_age$low_internet, alpha = 0.5)
+g <- g + labs(y = "internet", title = "Internet and Age")
+g
 dev.off()
 
 jpeg("lds_int_race.jpeg")
-plot(int_race, aspect = 2, xlab = "year", main = "Internet and Race")
+g <- ggplot(data = int_race, aes(year, internets, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = int_race$up_internet, ymin = int_race$low_internet, alpha = 0.5)
+g <- g + labs(y = "internet", title = "Internet and Race")
+g
 dev.off()
 
 jpeg("lds_int_inc.jpeg")
-plot(int_inc, aspect = 2, xlab = "year", main = "Internet and Household Income")
+g <- ggplot(data = int_inc, aes(year, internets, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = int_inc$up_internet, ymin = int_inc$low_internet, alpha = 0.5)
+g <- g + labs(y = "internet", title = "Internet and Income")
+g
 dev.off()
 
 jpeg("lds_int_sex.jpeg")
-plot(int_sex, aspect = 2, xlab = "year", main = "Internet and Gender")
+g <- ggplot(data = int_sex, aes(year, internets, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = int_sex$up_internet, ymin = int_sex$low_internet, alpha = 0.5)
+g <- g + labs(y = "internet", title = "Internet and Gender")
+g
 dev.off()
 
 jpeg("lds_int_edu.jpeg")
-plot(int_edu, aspect = 2, xlab = "year", main = "Internet and Education")
+g <- ggplot(data = int_edu, aes(year, internets, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = int_edu$up_internet, ymin = int_edu$low_internet, alpha = 0.5)
+g <- g + labs(y = "internet", title = "Internet and Education")
+g
 dev.off()
 
 jpeg("lds_int_lsm.jpeg")
-plot(int_lsm, aspect = 2, xlab = "year", main = "Internet and LSM")
+g <- ggplot(data = int_lsm, aes(year, internets, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = int_lsm$up_internet, ymin = int_lsm$low_internet, alpha = 0.5)
+g <- g + labs(y = "internet", title = "Internet and LSM")
+g
+dev.off()
+
+# pcs
+pcs_age <- groupedData(pcs ~ as.numeric(as.character(year))| category, data = type_frame_age)
+pcs_race <- groupedData(pcs ~ as.numeric(as.character(year))| category, data = type_frame_race)
+pcs_inc <- groupedData(pcs ~ as.numeric(as.character(year))| category, data = type_frame_inc)
+pcs_sex <- groupedData(pcs ~ as.numeric(as.character(year))| category, data = type_frame_sex)
+pcs_edu <- groupedData(pcs ~ as.numeric(as.character(year))| category, data = type_frame_edu)
+pcs_lsm <- groupedData(pcs ~ as.numeric(as.character(year))| category, data = type_frame_lsm)
+
+jpeg("lds_pcs_age.jpeg")
+g <- ggplot(data = pcs_age, aes(year, pcs, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = pcs_age$up_pcs, ymin = pcs_age$low_pcs, alpha = 0.5)
+g <- g + labs(y = "PC1", title = "PC1 and Age")
+g
+dev.off()
+
+jpeg("lds_pcs_race.jpeg")
+g <- ggplot(data = pcs_race, aes(year, pcs, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = pcs_race$up_pcs, ymin = pcs_race$low_pcs, alpha = 0.5)
+g <- g + labs(y = "PC1", title = "PC1 and Race")
+g
+dev.off()
+
+jpeg("lds_pcs_inc.jpeg")
+g <- ggplot(data = pcs_inc, aes(year, pcs, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = pcs_inc$up_pcs, ymin = pcs_inc$low_pcs, alpha = 0.5)
+g <- g + labs(y = "PC1", title = "PC1 and Household Income")
+g
+dev.off()
+
+jpeg("lds_pcs_sex.jpeg")
+g <- ggplot(data = pcs_sex, aes(year, pcs, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = pcs_sex$up_pcs, ymin = pcs_sex$low_pcs, alpha = 0.5)
+g <- g + labs(y = "PC1", title = "PC1 and Gender")
+g
+dev.off()
+
+jpeg("lds_pcs_edu.jpeg")
+g <- ggplot(data = pcs_edu, aes(year, pcs, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = pcs_edu$up_pcs, ymin = pcs_edu$low_pcs, alpha = 0.5)
+g <- g + labs(y = "PC1", title = "PC1 and Education")
+g
+dev.off()
+
+jpeg("lds_pcs_lsm.jpeg")
+g <- ggplot(data = pcs_lsm, aes(year, pcs, group = category))
+g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
+g <- g +  geom_line(size = 0.2)
+g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
+g <- g +  geom_errorbar(ymax = pcs_lsm$up_pcs, ymin = pcs_lsm$low_pcs, alpha = 0.5)
+g <- g + labs(y = "PC1", title = "PC1and LSM")
+g
 dev.off()
