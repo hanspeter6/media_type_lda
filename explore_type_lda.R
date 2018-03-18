@@ -5,23 +5,15 @@ library(dplyr)
 library(ggplot2)
 
 # reading in the different datasets:
-set02 <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2002/set02.rds")
-set05 <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2005/set05.rds")
-set08 <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2008/set08.rds")
-set10 <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2010/set10.rds")
-set12 <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2012/set12.rds")
-set14 <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2014/set14.rds")
+set95c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_1995/set95c.rds")
+set02c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2002/set02c.rds")
+set05c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2005/set05c.rds")
+set08c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2008/set08c.rds")
+set10c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2010/set10c.rds")
+set12c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2012/set12c.rds")
+set14c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2014/set14c.rds")
 
-# set class of pcs variable to vector
-set02$typePC <- as.vector(set02$typePC)
-set05$typePC <- as.vector(set05$typePC)
-set08$typePC <- as.vector(set08$typePC)
-set10$typePC <- as.vector(set10$typePC)
-set12$typePC <- as.vector(set12$typePC)
-set14$typePC <- as.vector(set14$typePC)
-
-
-# function to create frames
+# function to create frames (for all except '95 since doesnt have internet)
 frames <- function(set, category) {
         require(dplyr)
         
@@ -40,9 +32,9 @@ frames <- function(set, category) {
                           tvs = mean(tv),
                           radios = mean(radio),
                           internets = mean(internet),
-                          pcs = mean(typePC),
-                          up_pcs = mean(typePC) + (2 * sd(typePC)/sqrt(length(typePC))),
-                          low_pcs = mean(typePC) - (2 * sd(typePC)/sqrt(length(typePC))),
+                          alls = mean(all),
+                          up_all = mean(all) + (2 * sd(all)/sqrt(length(all))),
+                          low_all = mean(all) - (2 * sd(all)/sqrt(length(all))),
                           up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
                           low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
                           up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
@@ -57,62 +49,79 @@ frames <- function(set, category) {
         
 }
 
-frame_02 <- rbind.data.frame(frames(set02,"sex"),
-                             frames(set02,"age"),
-                             frames(set02,"edu"),
-                             frames(set02,"race"),
-                             frames(set02, "hh_inc"),
-                             frames(set02,"lsm")) %>%
+
+# create a vector to use for internet '95:
+# considered range(set10c$internet)
+set95c <- set95c %>%
+        mutate(internet = -1)
+
+# also, adjusted function to exclude lsm
+frame_95 <- rbind.data.frame(frames(set95c,"sex"),
+                             frames(set95c,"age"),
+                             frames(set95c,"edu"),
+                             frames(set95c,"race"),
+                             frames(set95c, "hh_inc")) %>% # dont have lsm...
+        mutate(year = 1995) %>%
+        select(category, year, everything())
+
+
+frame_02 <- rbind.data.frame(frames(set02c,"sex"),
+                             frames(set02c,"age"),
+                             frames(set02c,"edu"),
+                             frames(set02c,"race"),
+                             frames(set02c, "hh_inc"),
+                             frames(set02c,"lsm")) %>%
                                      mutate(year = 2002) %>%
                                      select(category, year, everything())
 
-frame_05 <- rbind.data.frame(frames(set05,"sex"),
-                             frames(set05,"age"),
-                             frames(set05,"edu"),
-                             frames(set05,"race"),
-                             frames(set05, "hh_inc"),
-                             frames(set05,"lsm")) %>%
+frame_05 <- rbind.data.frame(frames(set05c,"sex"),
+                             frames(set05c,"age"),
+                             frames(set05c,"edu"),
+                             frames(set05c,"race"),
+                             frames(set05c, "hh_inc"),
+                             frames(set05c,"lsm")) %>%
         mutate(year = 2005) %>%
         select(category, year, everything())
 
-frame_08 <- rbind.data.frame(frames(set08,"sex"),
-                             frames(set08,"age"),
-                             frames(set08,"edu"),
-                             frames(set08,"race"),
-                             frames(set08, "hh_inc"),
-                             frames(set08,"lsm")) %>%
+frame_08 <- rbind.data.frame(frames(set08c,"sex"),
+                             frames(set08c,"age"),
+                             frames(set08c,"edu"),
+                             frames(set08c,"race"),
+                             frames(set08c, "hh_inc"),
+                             frames(set08c,"lsm")) %>%
         mutate(year = 2008) %>%
         select(category, year, everything())
 
-frame_10 <- rbind.data.frame(frames(set10,"sex"),
-                             frames(set10,"age"),
-                             frames(set10,"edu"),
-                             frames(set10,"race"),
-                             frames(set10, "hh_inc"),
-                             frames(set10,"lsm")) %>%
+frame_10 <- rbind.data.frame(frames(set10c,"sex"),
+                             frames(set10c,"age"),
+                             frames(set10c,"edu"),
+                             frames(set10c,"race"),
+                             frames(set10c, "hh_inc"),
+                             frames(set10c,"lsm")) %>%
         mutate(year = 2010) %>%
         select(category, year, everything())
 
-frame_12 <- rbind.data.frame(frames(set12,"sex"),
-                             frames(set12,"age"),
-                             frames(set12,"edu"),
-                             frames(set12,"race"),
-                             frames(set12, "hh_inc"),
-                             frames(set12,"lsm")) %>%
+frame_12 <- rbind.data.frame(frames(set12c,"sex"),
+                             frames(set12c,"age"),
+                             frames(set12c,"edu"),
+                             frames(set12c,"race"),
+                             frames(set12c, "hh_inc"),
+                             frames(set12c,"lsm")) %>%
         mutate(year = 2012) %>%
         select(category, year, everything())
 
-frame_14 <- rbind.data.frame(frames(set14,"sex"),
-                             frames(set14,"age"),
-                             frames(set14,"edu"),
-                             frames(set14,"race"),
-                             frames(set14, "hh_inc"),
-                             frames(set14,"lsm")) %>%
+frame_14 <- rbind.data.frame(frames(set14c,"sex"),
+                             frames(set14c,"age"),
+                             frames(set14c,"edu"),
+                             frames(set14c,"race"),
+                             frames(set14c, "hh_inc"),
+                             frames(set14c,"lsm")) %>%
         mutate(year = 2014) %>%
         select(category, year, everything())
 
 # putting it together
-type_frame <- rbind.data.frame(frame_02,
+type_frame <- rbind.data.frame(#frame_95,
+                               frame_02,
                                frame_05,
                                frame_08,
                                frame_10,
@@ -145,68 +154,90 @@ type_frame_lsm <- type_frame %>%
         filter(category %in% c("LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10"))
 
 # considering plots of all media on demographic categories
-
+jpeg("plot_type_combined_age.jpeg")
 g <- ggplot(data = type_frame_age)
 g <- g + geom_line(aes(year, news, group = category, colour = "newspaper"))
 g <- g + geom_line(aes(year, mags, group = category, colour = "magazine"))
 g <- g + geom_line(aes(year, radios, group = category, colour = "radio"))
 g <- g + geom_line(aes(year, tvs, group = category, colour = "tv"))
 g <- g + geom_line(aes(year, internets, group = category, colour = "internet"))
+g <- g + geom_line(aes(year, alls, group = category, colour = "all"))
+g <- g + scale_colour_discrete(name="Media")
 g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
 g <- g + labs(y = "engagement", title = "Age")
 g
+dev.off()
 
+jpeg("plot_type_combined_race.jpeg")
 g <- ggplot(data = type_frame_race)
 g <- g + geom_line(aes(year, news, group = category, colour = "newspaper"))
 g <- g + geom_line(aes(year, mags, group = category, colour = "magazine"))
 g <- g + geom_line(aes(year, radios, group = category, colour = "radio"))
 g <- g + geom_line(aes(year, tvs, group = category, colour = "tv"))
 g <- g + geom_line(aes(year, internets, group = category, colour = "internet"))
+g <- g + geom_line(aes(year, alls, group = category, colour = "all"))
+g <- g + scale_colour_discrete(name="Media")
 g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
 g <- g + labs(y = "engagement", title = "Race")
 g
+dev.off()
 
+
+jpeg("plot_type_combined_inc.jpeg")
 g <- ggplot(data = type_frame_inc)
 g <- g + geom_line(aes(year, news, group = category, colour = "newspaper"))
 g <- g + geom_line(aes(year, mags, group = category, colour = "magazine"))
 g <- g + geom_line(aes(year, radios, group = category, colour = "radio"))
 g <- g + geom_line(aes(year, tvs, group = category, colour = "tv"))
 g <- g + geom_line(aes(year, internets, group = category, colour = "internet"))
+g <- g + geom_line(aes(year, alls, group = category, colour = "all"))
+g <- g + scale_colour_discrete(name="Media")
 g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g + labs(y = "engagement", title = "Household Income")
+g <- g + labs(y = "engagement", title = "Income")
 g
+dev.off()
 
+jpeg("plot_type_combined_sex.jpeg")
 g <- ggplot(data = type_frame_sex)
 g <- g + geom_line(aes(year, news, group = category, colour = "newspaper"))
 g <- g + geom_line(aes(year, mags, group = category, colour = "magazine"))
 g <- g + geom_line(aes(year, radios, group = category, colour = "radio"))
 g <- g + geom_line(aes(year, tvs, group = category, colour = "tv"))
 g <- g + geom_line(aes(year, internets, group = category, colour = "internet"))
+g <- g + geom_line(aes(year, alls, group = category, colour = "all"))
+g <- g + scale_colour_discrete(name="Media")
 g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
 g <- g + labs(y = "engagement", title = "Gender")
 g
+dev.off()
 
+jpeg("plot_type_combined_edu.jpeg")
 g <- ggplot(data = type_frame_edu)
 g <- g + geom_line(aes(year, news, group = category, colour = "newspaper"))
 g <- g + geom_line(aes(year, mags, group = category, colour = "magazine"))
 g <- g + geom_line(aes(year, radios, group = category, colour = "radio"))
 g <- g + geom_line(aes(year, tvs, group = category, colour = "tv"))
 g <- g + geom_line(aes(year, internets, group = category, colour = "internet"))
+g <- g + geom_line(aes(year, alls, group = category, colour = "all"))
+g <- g + scale_colour_discrete(name="Media")
 g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
 g <- g + labs(y = "engagement", title = "Education Level")
 g
+dev.off()
 
+jpeg("plot_type_combined_lsm.jpeg")
 g <- ggplot(data = type_frame_lsm)
 g <- g + geom_line(aes(year, news, group = category, colour = "newspaper"))
 g <- g + geom_line(aes(year, mags, group = category, colour = "magazine"))
 g <- g + geom_line(aes(year, radios, group = category, colour = "radio"))
 g <- g + geom_line(aes(year, tvs, group = category, colour = "tv"))
 g <- g + geom_line(aes(year, internets, group = category, colour = "internet"))
+g <- g + geom_line(aes(year, alls, group = category, colour = "all"))
+g <- g + scale_colour_discrete(name="Media")
 g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g + labs(y = "engagement", title = "LSM")
+g <- g + labs(y = "engagement", title = "Living Standards Measures (LSM)")
 g
-
-
+dev.off()
 
 # newspapers
 newsp_age <- groupedData(news ~ as.numeric(as.character(year))| category, data = type_frame_age)
@@ -549,73 +580,33 @@ g <- g + labs(y = "internet", title = "Internet and LSM")
 g
 dev.off()
 
-# pcs
-pcs_age <- groupedData(pcs ~ as.numeric(as.character(year))| category, data = type_frame_age)
-pcs_race <- groupedData(pcs ~ as.numeric(as.character(year))| category, data = type_frame_race)
-pcs_inc <- groupedData(pcs ~ as.numeric(as.character(year))| category, data = type_frame_inc)
-pcs_sex <- groupedData(pcs ~ as.numeric(as.character(year))| category, data = type_frame_sex)
-pcs_edu <- groupedData(pcs ~ as.numeric(as.character(year))| category, data = type_frame_edu)
-pcs_lsm <- groupedData(pcs ~ as.numeric(as.character(year))| category, data = type_frame_lsm)
+# 1 experiment a bit with lme (radio and age):
+type_frame_age$year <- as.numeric(as.character(type_frame_age$year)) - 2000
+grouped_age <- groupedData(radios ~ year | category, data = type_frame_age)
+plot(grouped_age)
 
-jpeg("lds_pcs_age.jpeg")
-g <- ggplot(data = pcs_age, aes(year, pcs, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = pcs_age$up_pcs, ymin = pcs_age$low_pcs, alpha = 0.5)
-g <- g + labs(y = "PC1", title = "PC1 and Age")
-g
-dev.off()
+list_age <- lmList(grouped_age)
+plot(list_age) # residuals look good
+plot(intervals(list_age)) # shows random effects for both intercept and year
 
-jpeg("lds_pcs_race.jpeg")
-g <- ggplot(data = pcs_race, aes(year, pcs, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = pcs_race$up_pcs, ymin = pcs_race$low_pcs, alpha = 0.5)
-g <- g + labs(y = "PC1", title = "PC1 and Race")
-g
-dev.off()
+age_radio_lme <- lme(list_age)
+summary(age_radio_lme) # shows strong correlation between intercept and year AND small fixed effect for year.. non significant fixed effects..
 
-jpeg("lds_pcs_inc.jpeg")
-g <- ggplot(data = pcs_inc, aes(year, pcs, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = pcs_inc$up_pcs, ymin = pcs_inc$low_pcs, alpha = 0.5)
-g <- g + labs(y = "PC1", title = "PC1 and Household Income")
-g
-dev.off()
+preds <- predict(age_radio_lme, level = 0:1)
 
-jpeg("lds_pcs_sex.jpeg")
-g <- ggplot(data = pcs_sex, aes(year, pcs, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = pcs_sex$up_pcs, ymin = pcs_sex$low_pcs, alpha = 0.5)
-g <- g + labs(y = "PC1", title = "PC1 and Gender")
-g
-dev.off()
+plot(augPred(age_radio_lme), aspect = "xy", grid = T)
 
-jpeg("lds_pcs_edu.jpeg")
-g <- ggplot(data = pcs_edu, aes(year, pcs, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = pcs_edu$up_pcs, ymin = pcs_edu$low_pcs, alpha = 0.5)
-g <- g + labs(y = "PC1", title = "PC1 and Education")
-g
-dev.off()
+# 2 experiment a bit with lme (internet and age):
+type_frame_age$year <- as.numeric(as.character(type_frame_age$year)) - 2000
+grouped_age <- groupedData(internets ~ year | category, data = type_frame_age)
+plot(grouped_age)
+list_age <- lmList(grouped_age)
+plot(list_age) # residuals look good
+plot(intervals(list_age)) # shows random effects for both intercept and year
 
-jpeg("lds_pcs_lsm.jpeg")
-g <- ggplot(data = pcs_lsm, aes(year, pcs, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3,width = 0.4, width = 0.4, ymax = pcs_lsm$up_pcs, ymin = pcs_lsm$low_pcs, alpha = 0.5)
-g <- g + labs(y = "PC1", title = "PC1and LSM")
-g
-dev.off()
+age_radio_lme <- lme(internets ~ year, data = grouped_age)#, random = ~ 1 | category)
+summary(age_radio_lme) # shows strong correlation between intercept and year AND small fixed effect for year.. non significant fixed effects..
 
+preds <- predict(age_radio_lme, level = 0:1)
 
-
+plot(augPred(age_radio_lme), aspect = "xy", grid = T)
