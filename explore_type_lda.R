@@ -4,14 +4,14 @@ library(tidyr)
 library(dplyr)
 library(ggplot2)
 
-# reading in the different datasets:
-set95c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_1995/set95c.rds")
-set02c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2002/set02c.rds")
-set05c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2005/set05c.rds")
-set08c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2008/set08c.rds")
-set10c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2010/set10c.rds")
-set12c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2012/set12c.rds")
-set14c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2014/set14c.rds")
+# reading in the different datasets (would need to be simple only...)
+# set95c_ <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_1995/set95c.rds")
+set02c_simple <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2002/set02c_simple.rds")
+set05c_simple <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2005/set05c_simple.rds")
+set08c_simple <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2008/set08c_simple.rds")
+set10c_simple <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2010/set10c_simple.rds")
+set12c_simple <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2012/set12c_simple.rds")
+set14c_simple <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2014/set14c_simple.rds")
 
 # function to create frames (for all except '95 since doesnt have internet)
 
@@ -116,12 +116,12 @@ frame_bind <- function(set, year) {
         
 }
 
-frame_02 <- frame_bind(set02c, 2002)
-frame_05 <- frame_bind(set05c, 2005)
-frame_08 <- frame_bind(set08c, 2008)
-frame_10 <- frame_bind(set10c, 2010)
-frame_12 <- frame_bind(set12c, 2012)
-frame_14 <- frame_bind(set14c, 2014)
+frame_02 <- frame_bind(set02c_simple, 2002)
+frame_05 <- frame_bind(set05c_simple, 2005)
+frame_08 <- frame_bind(set08c_simple, 2008)
+frame_10 <- frame_bind(set10c_simple, 2010)
+frame_12 <- frame_bind(set12c_simple, 2012)
+frame_14 <- frame_bind(set14c_simple, 2014)
 
 # putting it together
 type_frame <- rbind.data.frame(#frame_95,
@@ -139,7 +139,7 @@ type_frame <- rbind.data.frame(#frame_95,
 
 
 # # putting it into plm data frame type
-# type_frame <- pdata.frame(type_frame)#, index = c("country", "year"), drop.index = FALSE)
+type_frame <- pdata.frame(type_frame)#, index = c("country", "year"), drop.index = FALSE)
 
 # basic nlme
 
@@ -161,8 +161,8 @@ type_frame_cluster <- type_frame %>%
 
 # considering plots of all media on demographic categories
 # defining a function
-all_plots <- function(data, title) {
-        ggplot(data = data, title = "title") +
+all_plots <- function(data, title = "Title") {
+        ggplot(data = data, title = title) +
                 geom_line(aes(year, news, group = category, colour = "newspaper")) +
                 geom_line(aes(year, mags, group = category, colour = "magazine")) +
                 geom_line(aes(year, radios, group = category, colour = "radio")) +
@@ -174,6 +174,9 @@ all_plots <- function(data, title) {
                 labs(y = "engagement", title = title)
         
 }
+
+all_plots(type_frame)
+
 
 # try a function to draw all categories on a media instead:
 all_plots_news <- function(data) {
@@ -369,8 +372,7 @@ g <- g + labs(y = "radio", title = "radio and Age")
 g
 dev.off()
 
-
-# Radio and Age with Fitted Values
+# Radio and Age with Fitted Values (first generate fitted values....)
 radios_age <- radios_age %>%
         mutate(preds = as.vector(fitted(lme1_radio_age)))
 jpeg("lds_radios_age_fitted.jpeg")
@@ -572,6 +574,9 @@ g
 dev.off()
 
 
+
+
+
 # 1 experiment a bit with lme (newspapers and age):
 
 # check out a few with package plots:
@@ -627,14 +632,15 @@ preds_lme <- predict(lme1_radio_age, primary = ~ I(year - 2008)) # see fitted pl
 # try to fit a single model to all for radio: maybe then leave out the last two measurements, predict and compare the errors:
 # contstruct grouped object
 radio_frame_grouped <- groupedData(radios ~ year| category, data = type_frame)
-news_frame_grouped <- groupedData(news ~ year| category, data = type_frame)
+
 # default plot of the grouped object
 plot(radio_frame_grouped, main = "radio")
-plot(news_frame_grouped, main = "newspapers")
 
 # my own, including regression lines from lme model
 radio_frame_grouped <- radio_frame_grouped %>%
         mutate(preds = as.vector(fitted(radio_all_lme1)))
+
+radio_frame_grouped$year <- as.vector(as.numeric(as.character(radio_frame_grouped$year)))
 
 jpeg("radio_all_lme.jpeg")
 ggplot(data = radio_frame_grouped, aes(year, radios, group = category)) +
@@ -646,7 +652,9 @@ ggplot(data = radio_frame_grouped, aes(year, radios, group = category)) +
         geom_line(aes(year, preds, group = category), colour = "red", size = 0.3, linetype = 2 ) +
         labs(y = "relative engagement", title = "Radio")
 dev.off()      
+
 # considering individual linear models  
+
 list_radio_all <- lmList(radios ~ I(year - 2008), data = radio_frame_grouped)
 
 jpeg("list_radio_all.jpeg")
@@ -700,10 +708,6 @@ mstd_test_error_radio <- sqrt(mean((radio_test_predictions - radio_test_grouped$
 # discussion: considering random effects tables...
 # ie want to draw table to random effects slope and for
 
-
-
-
-
 # newspapers
 news_frame_grouped <- groupedData(news ~ year| category, data = type_frame)
 plot(news_frame_grouped, main = "newspapers")
@@ -735,7 +739,9 @@ type_frame$category <- factor(type_frame$category, ordered = FALSE)
 test <- gather(type_frame, key = type, value = engagement, news, mags, tvs, radios, internets, alls)
 test$type <- factor(test$type)
 
-test_grouped <- groupedData(engagement ~ year | category/type, data = test)[,c(1,2,15,16)]
+test_grouped <- groupedData(engagement ~ year | category/type, data = test)
+
+test_grouped$year <- as.vector(as.numeric(as.character(test_grouped$year)))
 
 formula(test_grouped)
 plot(test_grouped)
@@ -743,6 +749,6 @@ plot(test_grouped, display = 1, collapse = 2)
 test_list <- lmList(test_grouped)
 plot(intervals(test_list))
 
-test_lme <- lme(engagement ~ year | category/type, data = test)
+test_lme <- lme(engagement ~ I(year-2008) | category/type, data = test_grouped) # warnings???
 summary(test_lme)
 plot(test_lme)
