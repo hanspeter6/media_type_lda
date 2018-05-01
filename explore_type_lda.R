@@ -1,11 +1,11 @@
-library(plm)
+# library(plm)
 library(nlme)
 library(tidyr)
 library(dplyr)
 library(ggplot2)
 
 # reading in the different datasets (would need to be simple only...)
-# set95c_ <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_1995/set95c.rds")
+set95c_simple <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_1995/set95c_simple.rds")
 set02c_simple <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2002/set02c_simple.rds")
 set05c_simple <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2005/set05c_simple.rds")
 set08c_simple <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2008/set08c_simple.rds")
@@ -15,54 +15,18 @@ set14c_simple <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/The
 
 # function to create frames (for all except '95 since doesnt have internet)
 
-# # a nested option
-# frames2 <- function(set, category1, category2) {
-#         require(dplyr)
-#         
-#         set$age <- factor(set$age, labels = c("15-24","25-44", "45-54","55+"), ordered = TRUE)
-#         set$race <- factor(set$race,labels = c("black", "coloured", "indian", "white"), ordered = TRUE)
-#         set$edu <- factor(set$edu, labels = c("<matric", "matric",">matric" ) ,ordered = TRUE)
-#         set$lsm <- factor(set$lsm, labels = c("LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10"), ordered = TRUE)
-#         set$sex <- factor(set$sex, labels = c("male", "female"), ordered = TRUE)
-#         set$hh_inc <- factor(set$hh_inc, labels = c("<R2500","R2500-R6999","R7000-R11999",">=R12000"), ordered = TRUE) # NB 2012 levels
-#         set$cluster <- factor(set$cluster, labels = c("1", "2", "3", "4"))
-#         
-#         
-#         set %>%
-#                 group_by_(category1 = category1, category2 = category2) %>%
-#                 summarise(news = mean(newspapers),
-#                           mags = mean(magazines),
-#                           tvs = mean(tv),
-#                           radios = mean(radio),
-#                           internets = mean(internet),
-#                           alls = mean(all),
-#                           up_all = mean(all) + (2 * sd(all)/sqrt(length(all))),
-#                           low_all = mean(all) - (2 * sd(all)/sqrt(length(all))),
-#                           up_newspapers = mean(newspapers) + (2 * sd(newspapers)/sqrt(length(newspapers))),
-#                           low_newspapers = mean(newspapers) - (2 * sd(newspapers)/sqrt(length(newspapers))),
-#                           up_magazines = mean(magazines) + (2 * sd(magazines)/sqrt(length(magazines))),
-#                           low_magazines = mean(magazines) - (2 * sd(magazines)/sqrt(length(magazines))),
-#                           up_tv = mean(tv) + (2 * sd(tv)/sqrt(length(tv))),
-#                           low_tv = mean(tv) - (2 * sd(tv)/sqrt(length(tv))),
-#                           up_radio = mean(radio) + (2 * sd(radio)/sqrt(length(radio))),
-#                           low_radio = mean(radio) - (2 * sd(radio)/sqrt(length(radio))),
-#                           up_internet = mean(internet) + (2 * sd(internet)/sqrt(length(internet))),
-#                           low_internet = mean(internet) - (2 * sd(internet)/sqrt(length(internet)))
-#                 )
-#         
-# }
-
 # single level
 frames <- function(set, category) {
         require(dplyr)
         
+        # set factor labels (NB double check levels)
         set$age <- factor(set$age, labels = c("15-24","25-44", "45-54","55+"), ordered = TRUE)
         set$race <- factor(set$race,labels = c("black", "coloured", "indian", "white"), ordered = TRUE)
         set$edu <- factor(set$edu, labels = c("<matric", "matric",">matric" ) ,ordered = TRUE)
         set$lsm <- factor(set$lsm, labels = c("LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10"), ordered = TRUE)
         set$sex <- factor(set$sex, labels = c("male", "female"), ordered = TRUE)
-        set$hh_inc <- factor(set$hh_inc, labels = c("<R2500","R2500-R6999","R7000-R11999",">=R12000"), ordered = TRUE) # NB 2012 levels
-        set$cluster <- factor(set$cluster, labels = c("cluster1", "cluster2", "cluster3", "cluster4"))
+        set$hh_inc <- factor(set$hh_inc, labels = c("<R2500","R2500-R6999","R7000-R11999",">=R12000"), ordered = TRUE)
+        set$cluster <- factor(set$cluster, labels = c("c1", "c2", "c3", "c4"), ordered = TRUE)
         
         
         set %>%
@@ -90,16 +54,17 @@ frames <- function(set, category) {
 }
 
 # # create a vector to use for internet '95:
-# # considered range(set10c$internet)
-# set95c <- set95c %>%
-#         mutate(internet = -1)
+# # for now, simply zero
+# set95c_simple <- set95c_simple %>%
+#         mutate(internet = 0)
 # 
 # # also, adjusted function to exclude lsm
-# frame_95 <- rbind.data.frame(frames(set95c,"sex"),
-#                              frames(set95c,"age"),
-#                              frames(set95c,"edu"),
-#                              frames(set95c,"race"),
-#                              frames(set95c, "hh_inc")) %>% # dont have lsm...
+# frame_95 <- rbind.data.frame(frames(set95c_simple,"sex"),
+#                              frames(set95c_simple,"age"),
+#                              frames(set95c_simple,"edu"),
+#                              frames(set95c_simple,"race"),
+#                              frames(set95c_simple, "hh_inc"),
+#                              frames(set95c_simple, "cluster")) %>% # dont have lsm...
 #         mutate(year = 1995) %>%
 #         select(category, year, everything())
 
@@ -110,7 +75,8 @@ frame_bind <- function(set, year) {
                          frames(set,"edu"),
                          frames(set,"race"),
                          frames(set, "hh_inc"),
-                         frames(set,"lsm")) %>% # frames(set,"cluster")
+                         frames(set,"lsm"),
+                         frames(set, "cluster")) %>%
                 mutate(year = year) %>%
                 select(category, year, everything())
         
@@ -132,36 +98,15 @@ type_frame <- rbind.data.frame(#frame_95,
                                frame_12,
                                frame_14)
 
-# # create a grouped object for nlme:
-# news_grouped <- groupedData(news ~ year | category, data = type_frame, order.groups = TRUE)
-# 
-# plot(news_grouped, grid = TRUE)
 
+# # change category ordered to unorders
+# type_frame$category <- factor(type_frame$category, ordered = FALSE)
 
-# # putting it into plm data frame type
-type_frame <- pdata.frame(type_frame)#, index = c("country", "year"), drop.index = FALSE)
-
-# basic nlme
-
-# frames per grouping
-type_frame_age <- type_frame %>%
-        filter(category %in% c("15-24","25-44", "45-54","55+" ))
-type_frame_race <- type_frame %>%
-        filter(category %in% c("black", "coloured", "indian", "white"))
-type_frame_inc <- type_frame %>%
-        filter(category %in% c("<R2500","R2500-R6999","R7000-R11999",">=R12000"))
-type_frame_sex <- type_frame %>%
-        filter(category %in% c("male", "female"))
-type_frame_edu <- type_frame %>%
-        filter(category %in% c("<matric", "matric",">matric"))
-type_frame_lsm <- type_frame %>%
-        filter(category %in% c("LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10"))
-type_frame_cluster <- type_frame %>%
-        filter(category %in% c("cluster1", "cluster2", "cluster3", "cluster4"))
+# EXPLORING
 
 # considering plots of all media on demographic categories
 # defining a function
-all_plots <- function(data, title = "Title") {
+all_plots <- function(data, title = "All Media Types") {
         ggplot(data = data, title = title) +
                 geom_line(aes(year, news, group = category, colour = "newspaper")) +
                 geom_line(aes(year, mags, group = category, colour = "magazine")) +
@@ -176,7 +121,6 @@ all_plots <- function(data, title = "Title") {
 }
 
 all_plots(type_frame)
-
 
 # try a function to draw all categories on a media instead:
 all_plots_news <- function(data) {
@@ -217,361 +161,188 @@ jpeg("plot_type_combined_cluster.jpeg")
 all_plots(type_frame_cluster, "Clusters")
 dev.off()
 
-# newspapers
-newsp_age <- groupedData(news ~ as.numeric(as.character(year))| category, data = type_frame_age)
-newsp_race <- groupedData(news ~ as.numeric(as.character(year))| category, data = type_frame_race)
-newsp_inc <- groupedData(news ~ as.numeric(as.character(year))| category, data = type_frame_inc)
-newsp_sex <- groupedData(news ~ as.numeric(as.character(year))| category, data = type_frame_sex)
-newsp_edu <- groupedData(news ~ as.numeric(as.character(year))| category, data = type_frame_edu)
-newsp_lsm <- groupedData(news ~ as.numeric(as.character(year))| category, data = type_frame_lsm)
+# function to plot details eith error bars: medium per category:
+plot_medium_by_category <- function(data, medium, category) {# category: one of age, race, income, sex, education, lsm, cluster
+                                                                # medium: one of: newspapers, magazines, radio, tv, internet
+        age_levels <- c("15-24","25-44", "45-54","55+" )
+        race_levels <- c("black", "coloured", "indian", "white")
+        inc_levels <- c("<R2500","R2500-R6999","R7000-R11999",">=R12000")
+        sex_levels <- c("male", "female")
+        edu_levels <- c("<matric", "matric",">matric")
+        lsm_levels <- c("LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10")
+        cluster_levels <- c("c1", "c2", "c3", "c4")
+        
+        if(category == "age") {
+                temp_levels <- age_levels
+        }
+        if(category == "race") {
+                temp_levels <- race_levels
+        }
+        if(category == "income") {
+                temp_levels <- inc_levels
+        }
+        if(category == "sex") {
+                temp_levels <- sex_levels
+        }
+        if(category == "education") {
+                temp_levels <- edu_levels
+        }
+        if(category == "lsm") {
+                temp_levels <- lsm_levels
+        }
+        if(category == "cluster") {
+                temp_levels <- cluster_levels
+        }
+        
+        temp_frame <- data %>%
+                filter(category %in% temp_levels)
+        
+        if(medium == "newspapers") {
+                a <- "news"
+                b <- "low_newspapers"
+                c <- "up_newspapers"
+                d <- "newspapers"
+                e <- paste("Newspapers and ", category)
+        }
+        if(medium == "magazines") {
+                a <- "mags"
+                b <- "low_magazines"
+                c <- "up_magazines"
+                d <- "magazines"
+                e <- paste("Magazines and ", category)
+        }
+        if(medium == "tv") {
+                a <- "tvs"
+                b <- "low_tv"
+                c <- "up_tv"
+                d <- "tv"
+                e <- paste("Television and ", category)
+        }
+        if(medium == "radio") {
+                a <- "radios"
+                b <- "low_radio"
+                c <- "up_radio"
+                d <- "radio"
+                e <- paste("Radio and ", category)
+        }
+        if(medium == "internet") {
+                a <- "internets"
+                b <- "low_internet"
+                c <- "up_internet"
+                d <- "internet"
+                e <- paste("Internet and ", category)
+        }
+        
+                
+        ggplot(temp_frame, aes_string("year", a, group = "category")) +
+                geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5) +
+                geom_line(size = 0.2) +
+                facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6)) +
+                geom_errorbar(aes_string(ymin = b, ymax = c),size = 0.3, width = 0.4, alpha = 0.5) +
+                labs(y = d, title = e)
+}
 
-jpeg("lds_newsp_age.jpeg")
-g <- ggplot(data = newsp_age, aes(year, news, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = newsp_age$up_newspapers, ymin = newsp_age$low_newspapers, alpha = 0.5)
-g <- g + labs(y = "newspapers", title = "Newspapers and Age")
-g
-dev.off()
+plot_medium_by_category(type_frame, "newspapers", "age") # etc..any combination...
+# etc...
 
-jpeg("lds_newsp_race.jpeg")
-g <- ggplot(data = newsp_race, aes(year, news, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = newsp_race$up_newspapers, ymin = newsp_race$low_newspapers, alpha = 0.5)
-g <- g + labs(y = "newspapers", title = "Newspapers and Race")
-g
-dev.off()
+# MODELING
 
-jpeg("lds_newsp_inc.jpeg")
-g <- ggplot(data = newsp_inc, aes(year, news, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = newsp_inc$up_newspapers, ymin = newsp_inc$low_newspapers, alpha = 0.5)
-g <- g + labs(y = "newspapers", title = "Newspapers and Household Income")
-g
-dev.off()
+## RADIO
+radio_grouped <- groupedData(radios ~ year | category, data = type_frame)
+# plot(radio_grouped) # check
+radio_list <- lmList(radios ~ I(year - mean(year)) | category, data = radio_grouped)
+# plot(intervals(radio_list))
+radio_lme <- lme(radio_list)
+# summary(radio_lme)
 
-jpeg("lds_newsp_sex.jpeg")
-g <- ggplot(data = newsp_sex, aes(year, news, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = newsp_sex$up_newspapers, ymin = newsp_sex$low_newspapers, alpha = 0.5)
-g <- g + labs(y = "newspapers", title = "Newspapers and Gender")
-g
-dev.off()
+## NEWSPAPERS
+news_grouped <- groupedData(news ~ year | category, data = type_frame)
+# plot(news_grouped) # check
+news_list <- lmList(news ~ I(year - mean(year)) | category, data = news_grouped)
+# plot(intervals(news_list))
+news_lme <- lme(news_list)
+# summary(news_lme)
 
-jpeg("lds_newsp_edu.jpeg")
-g <- ggplot(data = newsp_edu, aes(year, news, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = newsp_edu$up_newspapers, ymin = newsp_edu$low_newspapers, alpha = 0.5)
-g <- g + labs(y = "newspapers", title = "Newspapers and Education")
-g
-dev.off()
+## MAGAZINES
+mags_grouped <- groupedData(mags ~ year | category, data = type_frame)
+# plot(mags_grouped) # check
+mags_list <- lmList(mags ~ I(year - mean(year)) | category, data = mags_grouped)
+# plot(intervals(mags_list))
+mags_lme <- lme(mags_list)
+# summary(mags_lme)
 
-jpeg("lds_newsp_lsm.jpeg")
-g <- ggplot(data = newsp_lsm, aes(year, news, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = newsp_lsm$up_newspapers, ymin = newsp_lsm$low_newspapers, alpha = 0.5)
-g <- g + labs(y = "newspapers", title = "Newspapers and LSM")
-g
-dev.off()
+## TV
+tvs_grouped <- groupedData(tvs ~ year | category, data = type_frame)
+# plot(tvs_grouped) # check
+tvs_list <- lmList(tvs ~ I(year - mean(year)) | category, data = tvs_grouped)
+# plot(intervals(tvs_list))
+tvs_lme <- lme(tvs_list)
+# summary(tvs_lme)
 
-# magazines
-mags_age <- groupedData(mags ~ as.numeric(as.character(year))| category, data = type_frame_age)
-mags_race <- groupedData(mags ~ as.numeric(as.character(year))| category, data = type_frame_race)
-mags_inc <- groupedData(mags ~ as.numeric(as.character(year))| category, data = type_frame_inc)
-mags_sex <- groupedData(mags ~ as.numeric(as.character(year))| category, data = type_frame_sex)
-mags_edu <- groupedData(mags ~ as.numeric(as.character(year))| category, data = type_frame_edu)
-mags_lsm <- groupedData(mags ~ as.numeric(as.character(year))| category, data = type_frame_lsm)
+## INTERNET
+internet_grouped <- groupedData(internets ~ year | category, data = type_frame)
+# plot(internet_grouped) # check
+internet_list <- lmList(internets ~ I(year - mean(year)) | category, data = internet_grouped)
+# plot(intervals(internet_list))
+internet_lme <- lme(internet_list)
+# summary(internet_lme)
 
-jpeg("lds_mags_age.jpeg")
-g <- ggplot(data = mags_age, aes(year, mags, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = mags_age$up_magazines, ymin = mags_age$low_magazines, alpha = 0.5)
-g <- g + labs(y = "magazines", title = "magazines and Age")
-g
-dev.off()
-
-jpeg("lds_mags_race.jpeg")
-g <- ggplot(data = mags_race, aes(year, mags, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = mags_race$up_magazines, ymin = mags_race$low_magazines, alpha = 0.5)
-g <- g + labs(y = "magazines", title = "magazines and Race")
-g
-dev.off()
-
-jpeg("lds_mags_inc.jpeg")
-g <- ggplot(data = mags_inc, aes(year, mags, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = mags_inc$up_magazines, ymin = mags_inc$low_magazines, alpha = 0.5)
-g <- g + labs(y = "magazines", title = "magazines and Household Income")
-g
-dev.off()
-
-jpeg("lds_mags_sex.jpeg")
-g <- ggplot(data = mags_sex, aes(year, mags, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = mags_sex$up_magazines, ymin = mags_sex$low_magazines, alpha = 0.5)
-g <- g + labs(y = "magazines", title = "magazines and Gender")
-g
-dev.off()
-
-jpeg("lds_mags_edu.jpeg")
-g <- ggplot(data = mags_edu, aes(year, mags, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = mags_edu$up_magazines, ymin = mags_edu$low_magazines, alpha = 0.5)
-g <- g + labs(y = "magazines", title = "magazines and Education")
-g
-dev.off()
-
-jpeg("lds_mags_lsm.jpeg")
-g <- ggplot(data = mags_lsm, aes(year, mags, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = mags_lsm$up_magazines, ymin = mags_lsm$low_magazines, alpha = 0.5)
-g <- g + labs(y = "magazines", title = "magazines and LSM")
-g
-dev.off()
-
-
-# radio
-radios_age <- groupedData(radios ~ as.numeric(as.character(year))| category, data = type_frame_age)
-radios_race <- groupedData(radios ~ as.numeric(as.character(year))| category, data = type_frame_race)
-radios_inc <- groupedData(radios ~ as.numeric(as.character(year))| category, data = type_frame_inc)
-radios_sex <- groupedData(radios ~ as.numeric(as.character(year))| category, data = type_frame_sex)
-radios_edu <- groupedData(radios ~ as.numeric(as.character(year))| category, data = type_frame_edu)
-radios_lsm <- groupedData(radios ~ as.numeric(as.character(year))| category, data = type_frame_lsm)
-
-jpeg("lds_radios_age.jpeg")
-g <- ggplot(data = radios_age, aes(year, radios, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = radios_age$up_radio, ymin = radios_age$low_radio, alpha = 0.5)
-g <- g + labs(y = "radio", title = "radio and Age")
-g
-dev.off()
-
-# Radio and Age with Fitted Values (first generate fitted values....)
-radios_age <- radios_age %>%
-        mutate(preds = as.vector(fitted(lme1_radio_age)))
-jpeg("lds_radios_age_fitted.jpeg")
-ggplot(data = radios_age, aes(year, radios, group = category)) +
+# Own plots of Medium and Categories with Fitted Values
+# add model predicted values to data frame
+type_frame_preds <- type_frame %>%
+        mutate(preds_radio = as.vector(fitted(radio_lme))) %>%
+        mutate(preds_news = as.vector(fitted(news_lme))) %>%
+        mutate(preds_mags = as.vector(fitted(mags_lme))) %>%
+        mutate(preds_tv = as.vector(fitted(tvs_lme))) %>%
+        mutate(preds_internet = as.vector(fitted(internet_lme)))
+## RADIO
+ggplot(data = type_frame_preds, aes(year, radios, group = category)) +
         geom_point(color = "blue", size = 2, fill = "white", alpha = 0.5) +
         geom_line(size = 0.2) +
-        geom_line(aes(year, preds, group = category), colour = "red", size = 0.3, linetype = 2 ) +
+        geom_line(aes(year, preds_radio, group = category), colour = "red", size = 0.3, linetype = 2 ) +
         facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6)) +
-        geom_errorbar(size = 0.3, width = 0.4, ymax = radios_age$up_radio, ymin = radios_age$low_radio, alpha = 0.5) +
-        labs(y = "radio", title = "Radio and Age with Fitted Values")
-dev.off()
+        geom_errorbar(aes(ymax = up_radio, ymin = low_radio), size = 0.3, width = 0.4, alpha = 0.5) +
+        labs(y = "radio", title = "Radio with Fitted Values")
+
+# TV
+ggplot(data = type_frame_preds, aes(year, tvs, group = category)) +
+        geom_point(color = "blue", size = 2, fill = "white", alpha = 0.5) +
+        geom_line(size = 0.2) +
+        geom_line(aes(year, preds_tv, group = category), colour = "red", size = 0.3, linetype = 2 ) +
+        facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6)) +
+        geom_errorbar(aes(ymax = up_tv, ymin = low_tv), size = 0.3, width = 0.4, alpha = 0.5) +
+        labs(y = "tv", title = "TV with Fitted Values")
+
+# NEWSPAPERS
+ggplot(data = type_frame_preds, aes(year, news, group = category)) +
+        geom_point(color = "blue", size = 2, fill = "white", alpha = 0.5) +
+        geom_line(size = 0.2) +
+        geom_line(aes(year, preds_news, group = category), colour = "red", size = 0.3, linetype = 2 ) +
+        facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6)) +
+        geom_errorbar(aes(ymax = up_newspapers, ymin = low_newspapers), size = 0.3, width = 0.4, alpha = 0.5) +
+        labs(y = "newspapers", title = "Newspapers with Fitted Values")
+
+# MAGAZINES
+ggplot(data = type_frame_preds, aes(year, mags, group = category)) +
+        geom_point(color = "blue", size = 2, fill = "white", alpha = 0.5) +
+        geom_line(size = 0.2) +
+        geom_line(aes(year, preds_mags, group = category), colour = "red", size = 0.3, linetype = 2 ) +
+        facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6)) +
+        geom_errorbar(aes(ymax = up_magazines, ymin = low_magazines), size = 0.3, width = 0.4, alpha = 0.5) +
+        labs(y = "magazines", title = "Magazines with Fitted Values")
+
+# INTERNET
+ggplot(data = type_frame_preds, aes(year, internets, group = category)) +
+        geom_point(color = "blue", size = 2, fill = "white", alpha = 0.5) +
+        geom_line(size = 0.2) +
+        geom_line(aes(year, preds_internet, group = category), colour = "red", size = 0.3, linetype = 2 ) +
+        facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6)) +
+        geom_errorbar(aes(ymax = up_internet, ymin = low_internet), size = 0.3, width = 0.4, alpha = 0.5) +
+        labs(y = "internet", title = "Internet with Fitted Values")
 
 
 
-jpeg("lds_radios_race.jpeg")
-g <- ggplot(data = radios_race, aes(year, radios, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = radios_race$up_radio, ymin = radios_race$low_radio, alpha = 0.5)
-g <- g + labs(y = "radio", title = "radio and Race")
-g
-dev.off()
 
-jpeg("lds_radios_inc.jpeg")
-g <- ggplot(data = radios_inc, aes(year, radios, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = radios_inc$up_radio, ymin = radios_inc$low_radio, alpha = 0.5)
-g <- g + labs(y = "radio", title = "radio and Household Income")
-g
-dev.off()
-
-jpeg("lds_radios_sex.jpeg")
-g <- ggplot(data = radios_sex, aes(year, radios, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = radios_sex$up_radio, ymin = radios_sex$low_radio, alpha = 0.5)
-g <- g + labs(y = "radio", title = "radio and Gender")
-g
-dev.off()
-
-jpeg("lds_radios_edu.jpeg")
-g <- ggplot(data = radios_edu, aes(year, radios, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = radios_edu$up_radio, ymin = radios_edu$low_radio, alpha = 0.5)
-g <- g + labs(y = "radio", title = "radio and Education")
-g
-dev.off()
-
-jpeg("lds_radios_lsm.jpeg")
-g <- ggplot(data = radios_lsm, aes(year, radios, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = radios_lsm$up_radio, ymin = radios_lsm$low_radio, alpha = 0.5)
-g <- g + labs(y = "radio", title = "radio and LSM")
-g
-dev.off()
-
-# tvs
-tv_age <- groupedData(tvs ~ as.numeric(as.character(year))| category, data = type_frame_age)
-tv_race <- groupedData(tvs ~ as.numeric(as.character(year))| category, data = type_frame_race)
-tv_inc <- groupedData(tvs ~ as.numeric(as.character(year))| category, data = type_frame_inc)
-tv_sex <- groupedData(tvs ~ as.numeric(as.character(year))| category, data = type_frame_sex)
-tv_edu <- groupedData(tvs ~ as.numeric(as.character(year))| category, data = type_frame_edu)
-tv_lsm <- groupedData(tvs ~ as.numeric(as.character(year))| category, data = type_frame_lsm)
-
-jpeg("lds_tv_age.jpeg")
-g <- ggplot(data = tv_age, aes(year, tvs, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = tv_age$up_tv, ymin = tv_age$low_tv, alpha = 0.5)
-g <- g + labs(y = "tv", title = "tv and Age")
-g
-dev.off()
-
-jpeg("lds_tv_race.jpeg")
-g <- ggplot(data = tv_race, aes(year, tvs, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = tv_race$up_tv, ymin = tv_race$low_tv, alpha = 0.5)
-g <- g + labs(y = "tv", title = "tv and Race")
-g
-dev.off()
-
-jpeg("lds_tv_inc.jpeg")
-g <- ggplot(data = tv_inc, aes(year, tvs, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = tv_inc$up_tv, ymin = tv_inc$low_tv, alpha = 0.5)
-g <- g + labs(y = "tv", title = "tv and Household Income")
-g
-dev.off()
-
-jpeg("lds_tv_sex.jpeg")
-g <- ggplot(data = tv_sex, aes(year, tvs, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = tv_sex$up_tv, ymin = tv_sex$low_tv, alpha = 0.5)
-g <- g + labs(y = "tv", title = "tv and Gender")
-g
-dev.off()
-
-jpeg("lds_tv_edu.jpeg")
-g <- ggplot(data = tv_edu, aes(year, tvs, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = tv_edu$up_tv, ymin = tv_edu$low_tv, alpha = 0.5)
-g <- g + labs(y = "tv", title = "tv and Education")
-g
-dev.off()
-
-jpeg("lds_tv_lsm.jpeg")
-g <- ggplot(data = tv_lsm, aes(year, tvs, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = tv_lsm$up_tv, ymin = tv_lsm$low_tv, alpha = 0.5)
-g <- g + labs(y = "tv", title = "tv and LSM")
-g
-dev.off()
-
-# internet
-int_age <- groupedData(internets ~ as.numeric(as.character(year))| category, data = type_frame_age)
-int_race <- groupedData(internets ~ as.numeric(as.character(year))| category, data = type_frame_race)
-int_inc <- groupedData(internets ~ as.numeric(as.character(year))| category, data = type_frame_inc)
-int_sex <- groupedData(internets ~ as.numeric(as.character(year))| category, data = type_frame_sex)
-int_edu <- groupedData(internets ~ as.numeric(as.character(year))| category, data = type_frame_edu)
-int_lsm <- groupedData(internets ~ as.numeric(as.character(year))| category, data = type_frame_lsm)
-
-jpeg("lds_int_age.jpeg")
-g <- ggplot(data = int_age, aes(year, internets, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = int_age$up_internet, ymin = int_age$low_internet, alpha = 0.5)
-g <- g + labs(y = "internet", title = "Internet and Age")
-g
-dev.off()
-
-jpeg("lds_int_race.jpeg")
-g <- ggplot(data = int_race, aes(year, internets, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = int_race$up_internet, ymin = int_race$low_internet, alpha = 0.5)
-g <- g + labs(y = "internet", title = "Internet and Race")
-g
-dev.off()
-
-jpeg("lds_int_inc.jpeg")
-g <- ggplot(data = int_inc, aes(year, internets, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = int_inc$up_internet, ymin = int_inc$low_internet, alpha = 0.5)
-g <- g + labs(y = "internet", title = "Internet and Income")
-g
-dev.off()
-
-jpeg("lds_int_sex.jpeg")
-g <- ggplot(data = int_sex, aes(year, internets, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = int_sex$up_internet, ymin = int_sex$low_internet, alpha = 0.5)
-g <- g + labs(y = "internet", title = "Internet and Gender")
-g
-dev.off()
-
-jpeg("lds_int_edu.jpeg")
-g <- ggplot(data = int_edu, aes(year, internets, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = int_edu$up_internet, ymin = int_edu$low_internet, alpha = 0.5)
-g <- g + labs(y = "internet", title = "Internet and Education")
-g
-dev.off()
-
-jpeg("lds_int_lsm.jpeg")
-g <- ggplot(data = int_lsm, aes(year, internets, group = category))
-g <- g + geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5)
-g <- g +  geom_line(size = 0.2)
-g <- g + facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6))
-g <- g +  geom_errorbar(size = 0.3, width = 0.4, ymax = int_lsm$up_internet, ymin = int_lsm$low_internet, alpha = 0.5)
-g <- g + labs(y = "internet", title = "Internet and LSM")
-g
-dev.off()
 
 
 
@@ -732,23 +503,3 @@ plot(tv_all_lme) # may not satisfy homoscedasticity assumptions: actually defini
 
 
 
-# trying the whole lot into single, nested set: 
-
-# category unordered
-type_frame$category <- factor(type_frame$category, ordered = FALSE)
-test <- gather(type_frame, key = type, value = engagement, news, mags, tvs, radios, internets, alls)
-test$type <- factor(test$type)
-
-test_grouped <- groupedData(engagement ~ year | category/type, data = test)
-
-test_grouped$year <- as.vector(as.numeric(as.character(test_grouped$year)))
-
-formula(test_grouped)
-plot(test_grouped)
-plot(test_grouped, display = 1, collapse = 2)
-test_list <- lmList(test_grouped)
-plot(intervals(test_list))
-
-test_lme <- lme(engagement ~ I(year-2008) | category/type, data = test_grouped) # warnings???
-summary(test_lme)
-plot(test_lme)
