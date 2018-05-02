@@ -3,6 +3,7 @@ library(nlme)
 library(tidyr)
 library(dplyr)
 library(ggplot2)
+library(gridExtra)
 
 # reading in the different datasets (would need to be simple only...)
 set95c_simple <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_1995/set95c_simple.rds")
@@ -98,6 +99,7 @@ type_frame <- rbind.data.frame(#frame_95,
                                frame_12,
                                frame_14)
 
+type_frame_typeGathered <- gather(type_frame, key = "type", value = "engagement", news, mags, tvs, radios, internets, alls)
 
 # # change category ordered to unorders
 # type_frame$category <- factor(type_frame$category, ordered = FALSE)
@@ -115,51 +117,59 @@ all_plots <- function(data, title = "All Media Types") {
                 geom_line(aes(year, internets, group = category, colour = "internet")) +
                 geom_line(aes(year, alls, group = category, colour = "all")) +
                 scale_colour_discrete(name="Media") +
-                facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6)) +
+                facet_grid(. ~ category) +
+                theme(axis.text.x = element_text(size = 6)) +
                 labs(y = "engagement", title = title)
         
 }
 
-all_plots(type_frame)
+vector_row1 <- c("male", "female","15-24","25-44", "45-54","55+","black", "coloured", "indian", "white")
+vector_row2 <- c("<matric", "matric",">matric", "<R2500","R2500-R6999","R7000-R11999",">=R12000", "LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10")
+p_up <- all_plots(type_frame[which(type_frame$category %in% vector_row1),])
+p_down <- all_plots(type_frame[which(type_frame$category %in% vector_row2),])
 
-# try a function to draw all categories on a media instead:
-all_plots_news <- function(data) {
-        ggplot(data = data) +
-                geom_line(aes(year, news, group = category)) +
-                facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6)) +
-                labs(y = "engagement", title = "newspapers")
-        
-}
-
-all_plots_news(type_frame)
-
-jpeg("plot_type_combined_age.jpeg")
-all_plots(type_frame_age, "Age")
+jpeg("all_plots.jpeg", quality = 100)
+grid.arrange(p_up, p_down, nrow = 2)
 dev.off()
 
-jpeg("plot_type_combined_race.jpeg")
-all_plots(type_frame_race, "Population Group")
-dev.off()
-
-jpeg("plot_type_combined_inc.jpeg")
-all_plots(type_frame_inc, "Household Income")
-dev.off()
-
-jpeg("plot_type_combined_sex.jpeg")
-all_plots(type_frame_sex, "Gender")
-dev.off()
-
-jpeg("plot_type_combined_edu.jpeg")
-all_plots(type_frame_edu, "Education Level")
-dev.off()
-
-jpeg("plot_type_combined_lsm.jpeg")
-all_plots(type_frame_lsm, "Living Standards Measure LSM")
-dev.off()
-
-jpeg("plot_type_combined_cluster.jpeg")
-all_plots(type_frame_cluster, "Clusters")
-dev.off()
+# # try a function to draw all categories on a media instead:
+# all_plots_news <- function(data) {
+#         ggplot(data = data) +
+#                 geom_line(aes(year, news, group = category)) +
+#                 facet_grid(. ~ category) + theme(axis.text.x = element_text(size = 6)) +
+#                 labs(y = "engagement", title = "newspapers")
+#         
+# }
+# 
+# all_plots_news(type_frame)
+# 
+# jpeg("plot_type_combined_age.jpeg")
+# all_plots(type_frame_age, "Age")
+# dev.off()
+# 
+# jpeg("plot_type_combined_race.jpeg")
+# all_plots(type_frame_race, "Population Group")
+# dev.off()
+# 
+# jpeg("plot_type_combined_inc.jpeg")
+# all_plots(type_frame_inc, "Household Income")
+# dev.off()
+# 
+# jpeg("plot_type_combined_sex.jpeg")
+# all_plots(type_frame_sex, "Gender")
+# dev.off()
+# 
+# jpeg("plot_type_combined_edu.jpeg")
+# all_plots(type_frame_edu, "Education Level")
+# dev.off()
+# 
+# jpeg("plot_type_combined_lsm.jpeg")
+# all_plots(type_frame_lsm, "Living Standards Measure LSM")
+# dev.off()
+# 
+# jpeg("plot_type_combined_cluster.jpeg")
+# all_plots(type_frame_cluster, "Clusters")
+# dev.off()
 
 # function to plot details eith error bars: medium per category:
 plot_medium_by_category <- function(data, medium, category) {# category: one of age, race, income, sex, education, lsm, cluster
@@ -235,14 +245,28 @@ plot_medium_by_category <- function(data, medium, category) {# category: one of 
         
                 
         ggplot(temp_frame, aes_string("year", a, group = "category")) +
-                geom_point( color = "blue", size = 2, fill = "white", alpha = 0.5) +
+                geom_point( color = "blue", size = 1, fill = "white", alpha = 0.5) +
                 geom_line(size = 0.2) +
                 facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6)) +
                 geom_errorbar(aes_string(ymin = b, ymax = c),size = 0.3, width = 0.4, alpha = 0.5) +
                 labs(y = d, title = e)
 }
 
-plot_medium_by_category(type_frame, "newspapers", "age") # etc..any combination...
+p_news_age <- plot_medium_by_category(type_frame, "newspapers", "age") # etc..any combination...
+p_radio_income <- plot_medium_by_category(type_frame, "radio", "income") # etc..any combination...
+p_tv_race <- plot_medium_by_category(type_frame, "tv", "race")
+p_internet_lsm <- plot_medium_by_category(type_frame, "internet", "lsm")
+p_internet_age <- plot_medium_by_category(type_frame, "internet", "age")
+p_mags_edu <- plot_medium_by_category(type_frame, "magazines", "education")
+
+jpeg("medium_category.jpeg", quality = 100)
+grid.arrange(p_news_age,
+             p_radio_income,
+             p_tv_race,
+             p_internet_lsm,
+             p_internet_age,
+             p_mags_edu, nrow = 3)
+dev.off()
 # etc...
 
 # MODELING
@@ -295,50 +319,109 @@ type_frame_preds <- type_frame %>%
         mutate(preds_mags = as.vector(fitted(mags_lme))) %>%
         mutate(preds_tv = as.vector(fitted(tvs_lme))) %>%
         mutate(preds_internet = as.vector(fitted(internet_lme)))
+
+# function for plotting fitted models
+plot_fitted <- function(data = type_frame_preds, medium) { # medium: one of: newspapers, magazines, radio, tv, internet
+        
+        if(medium == "newspapers") {
+                a <- "news"
+                b <- "preds_news"
+                c <- "up_newspapers"
+                d <- "low_newspapers"
+                e <- "newspapers"
+                f <- "Newspapers with Fitted Values"
+        }
+        if(medium == "magazines") {
+                a <- "mags"
+                b <- "preds_mags"
+                c <- "up_magazines"
+                d <- "low_magazines"
+                e <- "magazines"
+                f <- "Magazines with Fitted Values"
+        }
+        if(medium == "tv") {
+                a <- "tvs"
+                b <- "preds_tv"
+                c <- "up_tv"
+                d <- "low_tv"
+                e <- "tv"
+                f <- "TV with Fitted Values"
+        }
+        if(medium == "radio") {
+                a <- "radios"
+                b <- "preds_radio"
+                c <- "up_radio"
+                d <- "low_radio"
+                e <- "radio"
+                f <- "Radio with Fitted Values"
+        }
+        if(medium == "internet") {
+                a <- "internets"
+                b <- "preds_internet"
+                c <- "up_internet"
+                d <- "low_internet"
+                e <- "internet"
+                f <- "Internet with Fitted Values"
+        }
+        
+        #plot
+        ggplot(data, aes_string("year", a, group = "category")) +
+                geom_point(color = "blue", size = 1, fill = "white", alpha = 0.5) +
+                geom_line(size = 0.2) +
+                geom_line(aes_string("year", b, group = "category"), colour = "red", size = 0.3, linetype = 2 ) +
+                facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6)) +
+                geom_errorbar(aes_string(ymax = c, ymin = d), size = 0.3, width = 0.4, alpha = 0.5) +
+                labs(y = e, title = f)
+        
+}
+
 ## RADIO
-ggplot(data = type_frame_preds, aes(year, radios, group = category)) +
-        geom_point(color = "blue", size = 2, fill = "white", alpha = 0.5) +
-        geom_line(size = 0.2) +
-        geom_line(aes(year, preds_radio, group = category), colour = "red", size = 0.3, linetype = 2 ) +
-        facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6)) +
-        geom_errorbar(aes(ymax = up_radio, ymin = low_radio), size = 0.3, width = 0.4, alpha = 0.5) +
-        labs(y = "radio", title = "Radio with Fitted Values")
+pf_radio_up <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row1),],
+                           medium = "radio")
+pf_radio_down <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row2),],
+                           medium = "radio")
+jpeg("radio_fitted.jpeg", quality = 100)
+grid.arrange(pf_radio_up, pf_radio_down, nrow = 2)
+dev.off()
 
-# TV
-ggplot(data = type_frame_preds, aes(year, tvs, group = category)) +
-        geom_point(color = "blue", size = 2, fill = "white", alpha = 0.5) +
-        geom_line(size = 0.2) +
-        geom_line(aes(year, preds_tv, group = category), colour = "red", size = 0.3, linetype = 2 ) +
-        facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6)) +
-        geom_errorbar(aes(ymax = up_tv, ymin = low_tv), size = 0.3, width = 0.4, alpha = 0.5) +
-        labs(y = "tv", title = "TV with Fitted Values")
+## TV
+pf_tv_up <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row1),],
+                           medium = "tv")
+pf_tv_down <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row2),],
+                             medium = "tv")
+jpeg("tv_fitted.jpeg", quality = 100)
+grid.arrange(pf_tv_up, pf_tv_down, nrow = 2)
+dev.off()
 
-# NEWSPAPERS
-ggplot(data = type_frame_preds, aes(year, news, group = category)) +
-        geom_point(color = "blue", size = 2, fill = "white", alpha = 0.5) +
-        geom_line(size = 0.2) +
-        geom_line(aes(year, preds_news, group = category), colour = "red", size = 0.3, linetype = 2 ) +
-        facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6)) +
-        geom_errorbar(aes(ymax = up_newspapers, ymin = low_newspapers), size = 0.3, width = 0.4, alpha = 0.5) +
-        labs(y = "newspapers", title = "Newspapers with Fitted Values")
+## NEWSPAPERS
+pf_news_up <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row1),],
+                        medium = "newspapers")
+pf_news_down <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row2),],
+                          medium = "newspapers")
+jpeg("news_fitted.jpeg", quality = 100)
+grid.arrange(pf_news_up, pf_news_down, nrow = 2)
+dev.off()
 
-# MAGAZINES
-ggplot(data = type_frame_preds, aes(year, mags, group = category)) +
-        geom_point(color = "blue", size = 2, fill = "white", alpha = 0.5) +
-        geom_line(size = 0.2) +
-        geom_line(aes(year, preds_mags, group = category), colour = "red", size = 0.3, linetype = 2 ) +
-        facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6)) +
-        geom_errorbar(aes(ymax = up_magazines, ymin = low_magazines), size = 0.3, width = 0.4, alpha = 0.5) +
-        labs(y = "magazines", title = "Magazines with Fitted Values")
+## MAGAZINES
+pf_mags_up <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row1),],
+                        medium = "magazines")
+pf_mags_down <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row2),],
+                          medium = "magazines")
+jpeg("mags_fitted.jpeg", quality = 100)
+grid.arrange(pf_mags_up, pf_mags_down, nrow = 2)
+dev.off()
 
-# INTERNET
-ggplot(data = type_frame_preds, aes(year, internets, group = category)) +
-        geom_point(color = "blue", size = 2, fill = "white", alpha = 0.5) +
-        geom_line(size = 0.2) +
-        geom_line(aes(year, preds_internet, group = category), colour = "red", size = 0.3, linetype = 2 ) +
-        facet_grid(.~ category) + theme(axis.text.x = element_text(size = 6)) +
-        geom_errorbar(aes(ymax = up_internet, ymin = low_internet), size = 0.3, width = 0.4, alpha = 0.5) +
-        labs(y = "internet", title = "Internet with Fitted Values")
+## INTERNET
+pf_internet_up <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row1),],
+                        medium = "internet")
+pf_internet_down <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row2),],
+                          medium = "internet")
+jpeg("internet_fitted.jpeg", quality = 100)
+grid.arrange(pf_tv_up, pf_tv_down, nrow = 2)
+dev.off()
+
+
+
 
 
 
