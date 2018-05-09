@@ -99,7 +99,9 @@ type_frame <- rbind.data.frame(#frame_95,
                                frame_12,
                                frame_14)
 
-type_frame_typeGathered <- gather(type_frame, key = "type", value = "engagement", news, mags, tvs, radios, internets, alls)
+saveRDS(type_frame, "type_frame.rds")
+
+# type_frame_typeGathered <- gather(type_frame, key = "type", value = "engagement", news, mags, tvs, radios, internets, alls)
 
 # # change category ordered to unorders
 # type_frame$category <- factor(type_frame$category, ordered = FALSE)
@@ -417,7 +419,7 @@ pf_internet_up <- plot_fitted(data = type_frame_preds[which(type_frame$category 
 pf_internet_down <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row2),],
                           medium = "internet")
 jpeg("internet_fitted.jpeg", quality = 100)
-grid.arrange(pf_tv_up, pf_tv_down, nrow = 2)
+grid.arrange(pf_internet_up, pf_internet_down, nrow = 2)
 dev.off()
 
 
@@ -585,4 +587,8 @@ anova(tv_all_lme, tv_all_lm)
 plot(tv_all_lme) # may not satisfy homoscedasticity assumptions: actually definitely does not satisfy..
 
 
-
+fm1 <- lme(distance ~ age, Orthodont, random = ~ age | Subject)
+ranef(fm1)
+random.effects(fm1)             # same as above
+random.effects(fm1, augFrame = TRUE)
+print(random.effects(fm1))

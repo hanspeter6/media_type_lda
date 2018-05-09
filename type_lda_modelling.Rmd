@@ -1,0 +1,132 @@
+---
+title: "Modelling Media Type"
+author: "Hans-Peter Bakker (BKKHAN001)"
+date: "5/3/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+library(nlme)
+```
+
+```{r readObjects}
+type_frame <- readRDS("type_frame.rds")
+```
+
+# MODELING
+
+## RADIO
+```{r radio_explore}
+radio_grouped <- groupedData(radios ~ year | category, data = type_frame)
+plot(radio_grouped) # check
+radio_list <- lmList(radios ~ I(year - mean(year)) | category, data = radio_grouped)
+plot(intervals(radio_list))
+```
+
+# model 1 radio
+```{r radio_model_1}
+
+radio_lme1 <- lme(radio_list)
+summary(radio_lme1)
+plot(radio_lme1)
+qqnorm(radio_lme1)
+plot(radio_lme1, resid(.) ~ year | category)
+intervals(radio_lme1)
+random.effects(radio_lme1)
+```
+
+would appear that the residual distribution is OK but not great. Will consider a model that allows different variances by level of category.
+
+# model 2 radio
+```{r radio_model_2}
+radio_lme2 <- update(radio_lme1, weights = varIdent(form = ~ 1|category) )
+summary(radio_lme2)
+plot(radio_lme2)
+qqnorm(radio_lme2)
+```
+
+The diagnostic plots appear to show an improvement.
+
+comparing models 1 and 2 with an anova:
+
+```{r radio_compare_1n2}
+anova(radio_lme1, radio_lme2)
+plot(compareFits(ranef(radio_lme1), ranef(radio_lme2)), mark = c(0,0))
+```
+would appear that model 2 is a considerable improvement on model 1.???
+
+considering a
+Could consider non-linear options...but visuals don't really support it.....
+
+visualise its fitted values in .R script
+
+### Meaning:
+
+
+## NEWSPAPERS
+```{r news_explore}
+news_grouped <- groupedData(news ~ year | category, data = type_frame)
+plot(news_grouped) # check
+news_list <- lmList(news ~ I(year - mean(year)) | category, data = news_grouped)
+plot(intervals(news_list))
+```
+does look like linear ok, although in some cases growth curves may be appropriate
+
+```{r news_model_1}
+news_lme1 <- lme(news_list)
+summary(news_lme1)
+plot(news_lme1)
+qqnorm(news_lme1)
+plot(news_lme1, resid(.) ~ year | category)
+plot(news_lme1, category ~ resid(.), abline = 0)
+plot(news_lme1, resid(., type = "p") ~ fitted(.) | category, id = 0.05, adj = -0.3)
+plot(news_lme1, radios ~ fitted(.), id = 0.05, adj = -0.3)
+qqnorm(news_lme1, ~ resid(.) | category)
+plot(news_lme1, resid(.) ~ radios | category)
+
+comp <- compareFits(coef(news_list), coef(news_lme1))
+plot(comp, mark = fixef(news_lme1))
+
+plot(comparePred(news_list, news_lme1, length.out = 2, layout = c(8,4), between = list(y = c(0,0.5))))
+plot(compareFits(ranef(radio_lme1), ranef(radio_lme2)), mark = c(0,0))
+# intervals(news_lme1)
+# random.effects(news_lme1)
+```
+not good residual plot and not good qqnorm either.
+
+
+
+
+## MAGAZINES
+```{r}
+mags_grouped <- groupedData(mags ~ year | category, data = type_frame)
+plot(mags_grouped) # check
+mags_list <- lmList(mags ~ I(year - mean(year)) | category, data = mags_grouped)
+plot(intervals(mags_list))
+mags_lme <- lme(mags_list)
+summary(mags_lme)
+```
+
+## TV
+```{r}
+tvs_grouped <- groupedData(tvs ~ year | category, data = type_frame)
+plot(tvs_grouped) # check
+tvs_list <- lmList(tvs ~ I(year - mean(year)) | category, data = tvs_grouped)
+plot(intervals(tvs_list))
+tvs_lme <- lme(tvs_list)
+summary(tvs_lme)
+```
+
+## INTERNET
+```{r}
+internet_grouped <- groupedData(internets ~ year | category, data = type_frame)
+plot(internet_grouped) # check
+internet_list <- lmList(internets ~ I(year - mean(year)) | category, data = internet_grouped)
+plot(intervals(internet_list))
+internet_lme <- lme(internet_list)
+summary(internet_lme)
+```
