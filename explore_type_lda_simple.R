@@ -6,13 +6,13 @@ library(ggplot2)
 library(gridExtra)
 
 # reading in the different datasets (would need to be simple only...)
-# set95c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_1995/set95c.rds")
-set02c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2002/set02c.rds")
-set05c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2005/set05c.rds")
-set08c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2008/set08c.rds")
-set10c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2010/set10c.rds")
-set12c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2012/set12c.rds")
-set14c <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2014/set14c.rds")
+# set95c_simple <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_1995/set95c_simple.rds")
+set02c_simple <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2002/set02c_simple.rds")
+set05c_simple <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2005/set05c_simple.rds")
+set08c_simple <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2008/set08c_simple.rds")
+set10c_simple <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2010/set10c_simple.rds")
+set12c_simple <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2012/set12c_simple.rds")
+set14c_simple <- readRDS("/Users/HansPeter/Dropbox/Statistics/UCTDataScience/Thesis/amps_2014/set14c_simple.rds")
 
 # EXPLORATION OF DESCRIPTIVE STUFF BY YEAR
 # try to create single frame:
@@ -22,12 +22,12 @@ ex_set <- function(set, year) {
                 mutate(year = year)
 }
 
-big_set <- rbind.data.frame(ex_set(set02c, 2002),
-                                   ex_set(set05c, 2005),
-                                   ex_set(set08c, 2008),
-                                   ex_set(set10c, 2010),
-                                   ex_set(set12c, 2012),
-                                   ex_set(set14c, 2014))
+big_set_simple <- rbind.data.frame(ex_set(set02c_simple, 2002),
+                            ex_set(set05c_simple, 2005),
+                            ex_set(set08c_simple, 2008),
+                            ex_set(set10c_simple, 2010),
+                            ex_set(set12c_simple, 2012),
+                            ex_set(set14c_simple, 2014))
 
 # some exploratory descriptive stats plots:
 expl_demogs <- function(set, category) {
@@ -68,13 +68,13 @@ expl_demogs <- function(set, category) {
                       axis.text.x = element_text(size = 6)) 
 }
 
-jpeg('exDemogPlots.jpeg', quality = 100, type = "cairo")
-grid.arrange(expl_demogs(big_set, "sex"),
-             expl_demogs(big_set, "age"),
-             expl_demogs(big_set, "race"),
-             expl_demogs(big_set, "edu"),
-             expl_demogs(big_set, "hh_inc"),
-             expl_demogs(big_set, "lsm"),
+jpeg('exDemogPlots_simple.jpeg', quality = 100, type = "cairo")
+grid.arrange(expl_demogs(big_set_simple, "sex"),
+             expl_demogs(big_set_simple, "age"),
+             expl_demogs(big_set_simple, "race"),
+             expl_demogs(big_set_simple, "edu"),
+             expl_demogs(big_set_simple, "hh_inc"),
+             expl_demogs(big_set_simple, "lsm"),
              ncol=2, nrow = 3)
 dev.off()
 
@@ -120,16 +120,16 @@ frames <- function(set, category) {
 
 # # create a vector to use for internet '95:
 # # for now, simply zero
-# set95c <- set95c %>%
+# set95c_simple <- set95c_simple %>%
 #         mutate(internet = 0)
 # 
 # # also, adjusted function to exclude lsm
-# frame_95 <- rbind.data.frame(frames(set95c,"sex"),
-#                              frames(set95c,"age"),
-#                              frames(set95c,"edu"),
-#                              frames(set95c,"race"),
-#                              frames(set95c, "hh_inc"),
-#                              frames(set95c, "cluster")) %>% # dont have lsm...
+# frame_95 <- rbind.data.frame(frames(set95c_simple,"sex"),
+#                              frames(set95c_simple,"age"),
+#                              frames(set95c_simple,"edu"),
+#                              frames(set95c_simple,"race"),
+#                              frames(set95c_simple, "hh_inc"),
+#                              frames(set95c_simple, "cluster")) %>% # dont have lsm...
 #         mutate(year = 1995) %>%
 #         select(category, year, everything())
 
@@ -147,23 +147,23 @@ frame_bind <- function(set, year) {
         
 }
 
-frame_02 <- frame_bind(set02c, 2002)
-frame_05 <- frame_bind(set05c, 2005)
-frame_08 <- frame_bind(set08c, 2008)
-frame_10 <- frame_bind(set10c, 2010)
-frame_12 <- frame_bind(set12c, 2012)
-frame_14 <- frame_bind(set14c, 2014)
+frame_02_simple <- frame_bind(set02c_simple, 2002)
+frame_05_simple <- frame_bind(set05c_simple, 2005)
+frame_08_simple <- frame_bind(set08c_simple, 2008)
+frame_10_simple <- frame_bind(set10c_simple, 2010)
+frame_12_simple <- frame_bind(set12c_simple, 2012)
+frame_14_simple <- frame_bind(set14c_simple, 2014)
 
 # putting it together
-type_frame <- rbind.data.frame(#frame_95,
-        frame_02,
-        frame_05,
-        frame_08,
-        frame_10,
-        frame_12,
-        frame_14)
+type_frame_simple <- rbind.data.frame(#frame_95,
+        frame_02_simple,
+        frame_05_simple,
+        frame_08_simple,
+        frame_10_simple,
+        frame_12_simple,
+        frame_14_simple)
 
-saveRDS(type_frame, "type_frame.rds")
+saveRDS(type_frame_simple, "type_frame_simple.rds")
 
 # type_frame_typeGathered <- gather(type_frame, key = "type", value = "engagement", news, mags, tvs, radios, internets, alls)
 
@@ -189,13 +189,13 @@ all_plots <- function(data, title = "All Media Types") {
         
 }
 
-vector_row1 <- c("male", "female","15-24","25-44", "45-54","55+","black", "coloured", "indian", "white")
-vector_row2 <- c("<matric", "matric",">matric", "<R2500","R2500-R6999","R7000-R11999",">=R12000", "LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10")
-p_up <- all_plots(type_frame[which(type_frame$category %in% vector_row1),])
-p_down <- all_plots(type_frame[which(type_frame$category %in% vector_row2),])
+vector_row1_simple <- c("male", "female","15-24","25-44", "45-54","55+","black", "coloured", "indian", "white")
+vector_row2_simple <- c("<matric", "matric",">matric", "<R2500","R2500-R6999","R7000-R11999",">=R12000", "LSM1-2", "LSM3-4", "LSM5-6", "LSM7-8", "LSM9-10")
+p_up_simple <- all_plots(type_frame[which(type_frame$category %in% vector_row1),])
+p_down_simple <- all_plots(type_frame[which(type_frame$category %in% vector_row2),])
 
-jpeg("all_plots.jpeg", quality = 100)
-grid.arrange(p_up, p_down, nrow = 2)
+jpeg("all_plots_simple.jpeg", quality = 100)
+grid.arrange(p_up_simple, p_down_simple, nrow = 2)
 dev.off()
 
 # function to plot details eith error bars: medium per category:
@@ -279,19 +279,19 @@ plot_medium_by_category <- function(data, medium, category) {# category: one of 
                 labs(y = d, title = e)
 }
 
-p_news_age <- plot_medium_by_category(type_frame, "newspapers", "age") # etc..any combination...
-p_radio_income <- plot_medium_by_category(type_frame, "radio", "income") # etc..any combination...
-p_tv_race <- plot_medium_by_category(type_frame, "tv", "race")
-p_internet_lsm <- plot_medium_by_category(type_frame, "internet", "lsm")
-p_internet_age <- plot_medium_by_category(type_frame, "internet", "age")
-p_mags_edu <- plot_medium_by_category(type_frame, "magazines", "education")
+p_news_age_simple <- plot_medium_by_category(type_frame, "newspapers", "age") # etc..any combination...
+p_radio_income_simple <- plot_medium_by_category(type_frame, "radio", "income") # etc..any combination...
+p_tv_race_simple <- plot_medium_by_category(type_frame, "tv", "race")
+p_internet_lsm_simple <- plot_medium_by_category(type_frame, "internet", "lsm")
+p_internet_age_simple <- plot_medium_by_category(type_frame, "internet", "age")
+p_mags_edu_simple <- plot_medium_by_category(type_frame, "magazines", "education")
 
-jpeg("medium_category.jpeg", quality = 100)
-grid.arrange(p_news_age,
-             p_radio_income,
-             p_tv_race,
-             p_internet_lsm,
-             p_internet_age,
+jpeg("medium_category_simple.jpeg", quality = 100)
+grid.arrange(p_news_age_simple,
+             p_radio_income_simple,
+             p_tv_race_simple,
+             p_internet_lsm_simple,
+             p_internet_age_simple,
              p_mags_edu, nrow = 3)
 dev.off()
 # etc...
@@ -299,53 +299,53 @@ dev.off()
 # MODELING
 
 ## RADIO
-radio_grouped <- groupedData(radios ~ year | category, data = type_frame)
+radio_grouped_simple <- groupedData(radios ~ year | category, data = type_frame_simple)
 # plot(radio_grouped) # check
-radio_list <- lmList(radios ~ I(year - mean(year)) | category, data = radio_grouped)
+radio_list_simple <- lmList(radios ~ I(year - mean(year)) | category, data = radio_grouped_simple)
 # plot(intervals(radio_list))
-radio_lme <- lme(radio_list)
+radio_lme_simple <- lme(radio_list_simple)
 # summary(radio_lme)
 
 ## NEWSPAPERS
-news_grouped <- groupedData(news ~ year | category, data = type_frame)
+news_grouped_simple <- groupedData(news ~ year | category, data = type_frame_simple)
 # plot(news_grouped) # check
-news_list <- lmList(news ~ I(year - mean(year)) | category, data = news_grouped)
+news_list_simple <- lmList(news ~ I(year - mean(year)) | category, data = news_grouped_simple)
 # plot(intervals(news_list))
-news_lme <- lme(news_list)
+news_lme_simple <- lme(news_list_simple)
 # summary(news_lme)
 
 ## MAGAZINES
-mags_grouped <- groupedData(mags ~ year | category, data = type_frame)
+mags_grouped_simple <- groupedData(mags ~ year | category, data = type_frame_simple)
 # plot(mags_grouped) # check
-mags_list <- lmList(mags ~ I(year - mean(year)) | category, data = mags_grouped)
+mags_list_simple <- lmList(mags ~ I(year - mean(year)) | category, data = mags_grouped_simple)
 # plot(intervals(mags_list))
-mags_lme <- lme(mags_list)
+mags_lme_simple <- lme(mags_list_simple)
 # summary(mags_lme)
 
 ## TV
-tvs_grouped <- groupedData(tvs ~ year | category, data = type_frame)
+tvs_grouped_simple <- groupedData(tvs ~ year | category, data = type_frame_simple)
 # plot(tvs_grouped) # check
-tvs_list <- lmList(tvs ~ I(year - mean(year)) | category, data = tvs_grouped)
+tvs_list_simple <- lmList(tvs ~ I(year - mean(year)) | category, data = tvs_grouped_simple)
 # plot(intervals(tvs_list))
-tvs_lme <- lme(tvs_list)
+tvs_lme_simple <- lme(tvs_list_simple)
 # summary(tvs_lme)
 
 ## INTERNET
-internet_grouped <- groupedData(internets ~ year | category, data = type_frame)
+internet_grouped_simple <- groupedData(internets ~ year | category, data = type_frame_simple)
 # plot(internet_grouped) # check
-internet_list <- lmList(internets ~ I(year - mean(year)) | category, data = internet_grouped)
+internet_list_simple <- lmList(internets ~ I(year - mean(year)) | category, data = internet_grouped_simple)
 # plot(intervals(internet_list))
-internet_lme <- lme(internet_list)
+internet_lme_simple <- lme(internet_list_simple)
 # summary(internet_lme)
 
 # Own plots of Medium and Categories with Fitted Values
 # add model predicted values to data frame
-type_frame_preds <- type_frame %>%
-        mutate(preds_radio = as.vector(fitted(radio_lme))) %>%
-        mutate(preds_news = as.vector(fitted(news_lme))) %>%
-        mutate(preds_mags = as.vector(fitted(mags_lme))) %>%
-        mutate(preds_tv = as.vector(fitted(tvs_lme))) %>%
-        mutate(preds_internet = as.vector(fitted(internet_lme)))
+type_frame_preds_simple <- type_frame_simple %>%
+        mutate(preds_radio = as.vector(fitted(radio_lme_simple))) %>%
+        mutate(preds_news = as.vector(fitted(news_lme_simple))) %>%
+        mutate(preds_mags = as.vector(fitted(mags_lme_simple))) %>%
+        mutate(preds_tv = as.vector(fitted(tvs_lme_simple))) %>%
+        mutate(preds_internet = as.vector(fitted(internet_lme_simple)))
 
 # function for plotting fitted models
 plot_fitted <- function(data, medium) { # medium: one of: newspapers, magazines, radio, tv, internet
@@ -403,47 +403,47 @@ plot_fitted <- function(data, medium) { # medium: one of: newspapers, magazines,
 }
 
 ## RADIO
-pf_radio_up <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row1),],
-                                  medium = "radio")
-pf_radio_down <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row2),],
-                                    medium = "radio")
-jpeg("radio_fitted.jpeg", quality = 100)
-grid.arrange(pf_radio_up, pf_radio_down, nrow = 2)
+pf_radio_up_simple <- plot_fitted(data = type_frame_preds_simple[which(type_frame_simple$category %in% vector_row1_simple),],
+                           medium = "radio")
+pf_radio_down_simple <- plot_fitted(data = type_frame_preds_simple[which(type_frame_simple$category %in% vector_row2_simple),],
+                             medium = "radio")
+jpeg("radio_fitted_simple.jpeg", quality = 100)
+grid.arrange(pf_radio_up_simple, pf_radio_down_simple, nrow = 2)
 dev.off()
 
 ## TV
-pf_tv_up <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row1),],
-                               medium = "tv")
-pf_tv_down <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row2),],
-                                 medium = "tv")
-jpeg("tv_fitted.jpeg", quality = 100)
-grid.arrange(pf_tv_up, pf_tv_down, nrow = 2)
+pf_tv_up_simple <- plot_fitted(data = type_frame_preds_simple[which(type_frame_simple$category %in% vector_row1_simple),],
+                                  medium = "tv")
+pf_tv_down_simple <- plot_fitted(data = type_frame_preds_simple[which(type_frame_simple$category %in% vector_row2_simple),],
+                                    medium = "tv")
+jpeg("tv_fitted_simple.jpeg", quality = 100)
+grid.arrange(pf_tv_up_simple, pf_tv_down_simple, nrow = 2)
 dev.off()
 
 ## NEWSPAPERS
-pf_newspapers_up <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row1),],
-                                       medium = "newspapers")
-pf_newspapers_down <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row2),],
-                                         medium = "newspapers")
-jpeg("newspapers_fitted.jpeg", quality = 100)
-grid.arrange(pf_newspapers_up, pf_newspapers_down, nrow = 2)
+pf_newspapers_up_simple <- plot_fitted(data = type_frame_preds_simple[which(type_frame_simple$category %in% vector_row1_simple),],
+                               medium = "newspapers")
+pf_newspapers_down_simple <- plot_fitted(data = type_frame_preds_simple[which(type_frame_simple$category %in% vector_row2_simple),],
+                                 medium = "newspapers")
+jpeg("newspapers_fitted_simple.jpeg", quality = 100)
+grid.arrange(pf_newspapers_up_simple, pf_newspapers_down_simple, nrow = 2)
 dev.off()
 
 ## MAGAZINES
-pf_magazines_up <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row1),],
-                                      medium = "magazines")
-pf_magazines_down <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row2),],
-                                        medium = "magazines")
-jpeg("magazines_fitted.jpeg", quality = 100)
-grid.arrange(pf_magazines_up, pf_magazines_down, nrow = 2)
+pf_magazines_up_simple <- plot_fitted(data = type_frame_preds_simple[which(type_frame_simple$category %in% vector_row1_simple),],
+                               medium = "magazines")
+pf_magazines_down_simple <- plot_fitted(data = type_frame_preds_simple[which(type_frame_simple$category %in% vector_row2_simple),],
+                                 medium = "magazines")
+jpeg("magazines_fitted_simple.jpeg", quality = 100)
+grid.arrange(pf_magazines_up_simple, pf_magazines_down_simple, nrow = 2)
 dev.off()
 
 ## INTERNET
-pf_internet_up <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row1),],
-                                     medium = "internet")
-pf_internet_down <- plot_fitted(data = type_frame_preds[which(type_frame$category %in% vector_row2),],
-                                       medium = "internet")
-jpeg("internet_fitted.jpeg", quality = 100)
-grid.arrange(pf_internet_up, pf_internet_down, nrow = 2)
+pf_internet_up_simple <- plot_fitted(data = type_frame_preds_simple[which(type_frame_simple$category %in% vector_row1_simple),],
+                               medium = "internet")
+pf_internet_down_simple <- plot_fitted(data = type_frame_preds_simple[which(type_frame_simple$category %in% vector_row2_simple),],
+                                 medium = "internet")
+jpeg("internet_fitted_simple.jpeg", quality = 100)
+grid.arrange(pf_internet_up_simple, pf_internet_down_simple, nrow = 2)
 dev.off()
 
