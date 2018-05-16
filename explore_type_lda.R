@@ -63,19 +63,38 @@ expl_demogs <- function(set, category) {
                 scale_fill_discrete(labels = level) +
                 labs(title = title, x = "year") +
                 guides(fill=guide_legend(title=NULL)) +
-                theme(plot.title = element_text(size = 8),
-                      axis.text.y = element_text(size = 6),
-                      axis.text.x = element_text(size = 6)) 
+                theme(plot.title = element_text(size = 18),
+                      axis.text.y = element_text(size = 12),
+                      axis.text.x = element_text(size = 12)) 
 }
 
-jpeg('exDemogPlots.jpeg', quality = 100, type = "cairo")
-grid.arrange(expl_demogs(big_set, "sex"),
-             expl_demogs(big_set, "age"),
-             expl_demogs(big_set, "race"),
-             expl_demogs(big_set, "edu"),
-             expl_demogs(big_set, "hh_inc"),
-             expl_demogs(big_set, "lsm"),
-             ncol=2, nrow = 3)
+# jpeg('exDemogPlots.jpeg', quality = 100, type = "cairo")
+# grid.arrange(expl_demogs(big_set, "sex"),
+#              expl_demogs(big_set, "age"),
+#              expl_demogs(big_set, "race"),
+#              expl_demogs(big_set, "edu"),
+#              expl_demogs(big_set, "hh_inc"),
+#              expl_demogs(big_set, "lsm"),
+#              ncol=2, nrow = 3)
+# dev.off()
+
+jpeg('exDemogPlots_sex.jpeg', quality = 100, type = "cairo")
+expl_demogs(big_set, "sex")
+dev.off()
+jpeg('exDemogPlots_age.jpeg', quality = 100, type = "cairo")
+expl_demogs(big_set, "age")
+dev.off()
+jpeg('exDemogPlots_race.jpeg', quality = 100, type = "cairo")
+expl_demogs(big_set, "race")
+dev.off()
+jpeg('exDemogPlots_edu.jpeg', quality = 100, type = "cairo")
+expl_demogs(big_set, "edu")
+dev.off()
+jpeg('exDemogPlots_hh_inc.jpeg', quality = 100, type = "cairo")
+expl_demogs(big_set, "hh_inc")
+dev.off()
+jpeg('exDemogPlots_lsm.jpeg', quality = 100, type = "cairo")
+expl_demogs(big_set, "lsm")
 dev.off()
 
 ## preparing dataset for LDA
@@ -194,6 +213,13 @@ vector_row2 <- c("<matric", "matric",">matric", "<R2500","R2500-R6999","R7000-R1
 p_up <- all_plots(type_frame[which(type_frame$category %in% vector_row1),])
 p_down <- all_plots(type_frame[which(type_frame$category %in% vector_row2),])
 
+jpeg("all_plotsA.jpeg", quality = 100)
+p_up
+dev.off()
+jpeg("all_plotsB.jpeg", quality = 100)
+p_down
+dev.off()
+
 jpeg("all_plots.jpeg", quality = 100)
 grid.arrange(p_up, p_down, nrow = 2)
 dev.off()
@@ -305,6 +331,12 @@ radio_list <- lmList(radios ~ I(year - mean(year)) | category, data = radio_grou
 # plot(intervals(radio_list))
 radio_lme <- lme(radio_list)
 # summary(radio_lme)
+
+plot(radio_lme)
+summary(radio_lme)
+random.effects(radio_lme)
+intervals(radio_lme)
+
 
 ## NEWSPAPERS
 news_grouped <- groupedData(news ~ year | category, data = type_frame)
